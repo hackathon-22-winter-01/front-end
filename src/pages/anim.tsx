@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
 import reactLogo from './assets/react.svg'
 
@@ -41,13 +42,14 @@ const drawAngledRect = (
 }
 
 const app = new PIXI.Application({
-  width: 256,
-  height: 256,
+  width: 400,
+  height: 400,
   backgroundColor: 0x1099bb,
   resolution: window.devicePixelRatio || 1,
   autoDensity: true,
 })
 
+type railController = ReturnType<typeof createRail>
 const createRail = () => {
   let rail = new PIXI.Graphics()
   // 40 * 40
@@ -146,20 +148,52 @@ const Anim: React.FC = () => {
       reactIcon.on('pointerdown', changeColor)
       reactIcon.cursor = 'pointer'
 
-      const { rail, createAnimation } = createRail()
-      rail.x = 50
-      rail.y = 50
-
-      const railAnimation = createAnimation()
-      const railAnimationLoop = () => {
-        const result = railAnimation.next()
-        if (result.done) {
-          app.ticker.remove(railAnimationLoop)
-        }
+      const container = new PIXI.Container()
+      container.width = 400
+      container.height = 400
+      let rails = new Deque<railController>()
+      for (let i = 0; i < 10; i++) {
+        const rail = createRail()
+        rail.rail.x = 100
+        rail.rail.y = (9 - i) * 40
+        rails.push(rail)
+        rail.setFinished()
+        container.addChild(rail.rail)
+        // app.stage.addChild(rail.rail)
       }
-      app.ticker.add(railAnimationLoop)
+      const createRailAnimationLoop = () => {
+        let tick_count = 0
+        const loop = () => {
+          let distance_diff = tick_count / 3
+          if (distance_diff >= 40) {
+            tick_count %= 40 * 3
+            distance_diff = tick_count / 3
+            const rail = rails.pop_front()
+            if (rail !== undefined) {
+              rails.push(rail)
+              const railAnimation = rail.createAnimation()
+              const railAnimationLoop = () => {
+                const result = railAnimation.next()
+                if (result.done) {
+                  app.ticker.remove(railAnimationLoop)
+                }
+              }
+              app.ticker.add(railAnimationLoop)
+            }
+          }
 
-      app.stage.addChild(rail)
+          rails.toArray().forEach((rail, i) => {
+            rail.rail.y = (9 - i) * 40 + distance_diff
+          })
+
+          tick_count += 1
+        }
+        return loop
+      }
+      app.ticker.add(createRailAnimationLoop())
+
+      // container.scale.set(0.5)
+      app.stage.addChild(container)
 
       const rotate = () => {
         reactIcon.rotation += 0.1
