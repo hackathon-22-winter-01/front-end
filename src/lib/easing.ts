@@ -1,67 +1,65 @@
-type EasingFunction = (
+export type EasingFunction = (
   t: number,
   duration?: number,
   base?: number,
   mag?: number,
 ) => number
-type RangedEasingFunction = (
+export type RangedEasingFunction = (
   t: number,
-  range: [number, number],
+  range: readonly [number, number],
   duration?: number,
 ) => number
-
-const convert_to_range = (
-  f: EasingFunction,
-) => ((
+export type CarryRangeEasingFunction = (
   t: number,
-  range: [number, number],
-  duration: number = 1,
-) => {
-  const [start, end] = range
-  return f(t, duration, start, end - start)
-}) satisfies RangedEasingFunction
+  duration?: number,
+) => (range: readonly [number, number]) => number
 
-export const linear = ((
-  t: number,
-  duration: number = 1,
-  base: number = 0,
-  mag: number = 1,
-) => {
+const convert_to_range =
+  (f: EasingFunction): RangedEasingFunction =>
+  (t, range, duration = 1) => {
+    const [start, end] = range
+    return f(t, duration, start, end - start)
+  }
+const convert_to_carry_range =
+  (f: EasingFunction): CarryRangeEasingFunction =>
+  (t, duration = 1) => {
+    return (range) => {
+      return convert_to_range(f)(t, range, duration)
+    }
+  }
+
+interface EaseFunctionGroup {
+  at: EasingFunction
+  range: CarryRangeEasingFunction
+}
+const EaseFunctionGroupC = (f: EasingFunction): EaseFunctionGroup => {
+  return {
+    at: f,
+    range: convert_to_carry_range(f),
+  }
+}
+
+const linearF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
   return (t / duration) * mag + base
-}) satisfies EasingFunction
-export const linearRange = convert_to_range(linear)
+}
+export const Linear = EaseFunctionGroupC(linearF)
 
-export const easeInQuad = ((
-  t: number,
-  duration: number = 1,
-  base: number = 0,
-  mag: number = 1,
-) => {
+const easeInQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
   t /= duration
   return mag * t * t + base
-}) satisfies EasingFunction
-export const easeInQuadRange = convert_to_range(easeInQuad)
+}
+export const EaseIn = EaseFunctionGroupC(easeInQuadF)
 
-export const easeOutQuad = ((
-  t: number,
-  duration: number = 1,
-  base: number = 0,
-  mag: number = 1,
-) => {
+const easeOutQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
   t /= duration
   return -mag * t * (t - 2) + base
-}) satisfies EasingFunction
-export const easeOutQuadRange = convert_to_range(easeOutQuad)
+}
+export const EaseOut = EaseFunctionGroupC(easeOutQuadF)
 
-export const easeInOutQuad = ((
-  t: number,
-  duration: number = 1,
-  base: number = 0,
-  mag: number = 1,
-) => {
+const easeInOutQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
   t /= duration / 2
   if (t < 1) return (mag / 2) * t * t + base
   t--
   return (-mag / 2) * (t * (t - 2) - 1) + base
-}) satisfies EasingFunction
-export const easeInOutQuadRange = convert_to_range(easeInOutQuad)
+}
+export const EaseInOut = EaseFunctionGroupC(easeInOutQuadF)

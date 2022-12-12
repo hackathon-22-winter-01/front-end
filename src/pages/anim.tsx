@@ -1,11 +1,6 @@
 import * as PIXI from 'pixi.js'
-import { useCallback, useEffect, useRef } from 'react'
-import {
-  easeInOutQuad,
-  easeInQuadRange,
-  easeOutQuad,
-  easeOutQuadRange,
-} from '../lib/easing'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { EaseIn, EaseOut } from '../lib/easing'
 import reactLogo from './assets/react.svg'
 
 const straightWithAngle = (
@@ -72,23 +67,21 @@ const createRail = () => {
   }
 
   const createAnimation = function* () {
-    // rotate in * 3
-    // -> slide in * 2 (same timing)
     let tick_count = 0
     while (tick_count <= 70) {
       rail.clear()
       rail.beginFill(0x85471f)
       if (tick_count < 30) {
-        const progress_ease = easeOutQuad(tick_count, 30, 0, 30)
-        const baseAngle = (180 + (30 - progress_ease)) * (Math.PI / 180)
+        const ease = EaseOut.range(tick_count, 30)
+        const baseAngle = ease([210, 180]) * (Math.PI / 180)
         drawAngledRect(rail, { x: 40, y: 12 }, baseAngle, 40, 9)
       } else {
         rail.drawRect(0, 3, 40, 9)
       }
       if (tick_count < 40) {
         if (tick_count >= 10) {
-          const progress_ease = easeOutQuad(tick_count - 10, 30, 0, 30)
-          const baseAngle = (-120 + progress_ease) * (Math.PI / 180)
+          const ease = EaseOut.range(tick_count - 10, 30)
+          const baseAngle = ease([-120, -90]) * (Math.PI / 180)
           drawAngledRect(rail, { x: 0, y: 25 }, baseAngle, 9, 40)
         }
       } else {
@@ -96,8 +89,8 @@ const createRail = () => {
       }
       if (tick_count < 50) {
         if (tick_count >= 20) {
-          const progress_ease = easeOutQuad(tick_count - 20, 30, 0, 30)
-          const baseAngle = (180 + (30 - progress_ease)) * (Math.PI / 180)
+          const ease = EaseOut.range(tick_count - 20, 30)
+          const baseAngle = ease([210, 180]) * (Math.PI / 180)
           drawAngledRect(rail, { x: 40, y: 38 }, baseAngle, 40, 9)
         }
       } else {
@@ -109,21 +102,15 @@ const createRail = () => {
       if (tick_count < 40) {
         // nop
       } else if (tick_count < 50) {
-        const ease = (range: [number, number]) => {
-          return easeInQuadRange(tick_count - 40, range, 10)
-        }
+        const ease = EaseIn.range(tick_count - 40, 10)
         rail.drawRect(5, ease([-6, 4]), 8, ease([43, 38]))
         rail.drawRect(27, ease([-6, 4]), 8, ease([43, 38]))
       } else if (tick_count < 60) {
-        const ease = (range: [number, number]) => {
-          return easeOutQuadRange(tick_count - 50, range, 10)
-        }
+        const ease = EaseOut.range(tick_count - 50, 10)
         rail.drawRect(5, ease([4, -3]), 8, ease([38, 41]))
         rail.drawRect(27, ease([4, -3]), 8, ease([38, 41]))
       } else if (tick_count < 70) {
-        const ease = (range: [number, number]) => {
-          return easeInQuadRange(tick_count - 60, range, 10)
-        }
+        const ease = EaseIn.range(tick_count - 60, 10)
         rail.drawRect(5, ease([-3, 0]), 8, ease([41, 40]))
         rail.drawRect(27, ease([-3, 0]), 8, ease([41, 40]))
       } else {
@@ -164,11 +151,20 @@ const Anim: React.FC = () => {
       rail.x = 50
       rail.y = 50
 
-      const railAnimation = createAnimation()
+      let railAnimation = createAnimation()
       const railAnimationLoop = () => {
         const result = railAnimation.next()
         if (result.done) {
-          app.ticker.remove(railAnimationLoop)
+          railAnimation = (function* () {
+            while (true) {
+              yield false
+            }
+          })()
+          setTimeout(() => {
+            railAnimation = createAnimation()
+          }, 1000)
+          // railAnimation = createAnimation()
+          // app.ticker.remove(railAnimationLoop)
         }
       }
       app.ticker.add(railAnimationLoop)
