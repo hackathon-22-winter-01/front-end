@@ -73,28 +73,27 @@ const createRail = () => {
       rail.beginFill(0x85471f)
       if (tick_count < 30) {
         const ease = EaseOut.range(tick_count, 30)
-        const baseAngle = ease([210, 180]) * (Math.PI / 180)
-        drawAngledRect(rail, { x: 40, y: 12 }, baseAngle, 40, 9)
+        rail.drawRect(ease([20, 0]), 29, ease([45, 40]), 9)
       } else {
-        rail.drawRect(0, 3, 40, 9)
+        rail.drawRect(0, 29, 40, 9)
       }
-      if (tick_count < 40) {
-        if (tick_count >= 10) {
-          const ease = EaseOut.range(tick_count - 10, 30)
-          const baseAngle = ease([-120, -90]) * (Math.PI / 180)
-          drawAngledRect(rail, { x: 0, y: 25 }, baseAngle, 9, 40)
-        }
+
+      if (tick_count < 10) {
+        // nop
+      } else if (tick_count < 40) {
+        const ease = EaseOut.range(tick_count - 10, 30)
+        rail.drawRect(ease([20, 0]), 16, ease([45, 40]), 9)
       } else {
         rail.drawRect(0, 16, 40, 9)
       }
-      if (tick_count < 50) {
-        if (tick_count >= 20) {
-          const ease = EaseOut.range(tick_count - 20, 30)
-          const baseAngle = ease([210, 180]) * (Math.PI / 180)
-          drawAngledRect(rail, { x: 40, y: 38 }, baseAngle, 40, 9)
-        }
+
+      if (tick_count < 20) {
+        // nop
+      } else if (tick_count < 50) {
+        const ease = EaseOut.range(tick_count - 20, 30)
+        rail.drawRect(ease([20, 0]), 3, ease([45, 40]), 9)
       } else {
-        rail.drawRect(0, 29, 40, 9)
+        rail.drawRect(0, 3, 40, 9)
       }
       rail.endFill()
 
@@ -151,20 +150,11 @@ const Anim: React.FC = () => {
       rail.x = 50
       rail.y = 50
 
-      let railAnimation = createAnimation()
+      const railAnimation = createAnimation()
       const railAnimationLoop = () => {
         const result = railAnimation.next()
         if (result.done) {
-          railAnimation = (function* () {
-            while (true) {
-              yield false
-            }
-          })()
-          setTimeout(() => {
-            railAnimation = createAnimation()
-          }, 1000)
-          // railAnimation = createAnimation()
-          // app.ticker.remove(railAnimationLoop)
+          app.ticker.remove(railAnimationLoop)
         }
       }
       app.ticker.add(railAnimationLoop)
