@@ -4,6 +4,16 @@ import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
 import reactLogo from './assets/react.svg'
 
+type ColorTree = {
+  [key: string]: number | ColorTree
+}
+const Color = {
+  rail: {
+    sleeper: 0x85471f,
+    rail: 0x583e30,
+  },
+} as const satisfies ColorTree
+
 const straightWithAngle = (
   start: {
     x: number
@@ -56,7 +66,7 @@ const createRail = () => {
   const setFinished = () => {
     rail.clear()
 
-    rail.lineStyle(9, 0x85471f)
+    rail.lineStyle(9, Color.rail.sleeper)
     rail.moveTo(0, 7.5)
     rail.lineTo(40, 7.5)
     rail.moveTo(0, 20.5)
@@ -64,7 +74,7 @@ const createRail = () => {
     rail.moveTo(0, 33.5)
     rail.lineTo(40, 33.5)
 
-    rail.lineStyle(8, 0x583e30)
+    rail.lineStyle(8, Color.rail.rail)
     rail.moveTo(9, 0)
     rail.lineTo(9, 40)
     rail.moveTo(31, 0)
@@ -75,7 +85,7 @@ const createRail = () => {
     let tick_count = 0
     while (tick_count <= 70) {
       rail.clear()
-      rail.beginFill(0x85471f)
+      rail.beginFill(Color.rail.sleeper)
       if (tick_count < 30) {
         const ease = EaseOut.range(tick_count, 30)
         rail.drawRect(ease([20, 0]), 29, ease([45, 40]), 9)
@@ -102,7 +112,7 @@ const createRail = () => {
       }
       rail.endFill()
 
-      rail.beginFill(0x583e30)
+      rail.beginFill(Color.rail.rail)
       if (tick_count < 40) {
         // nop
       } else if (tick_count < 50) {
