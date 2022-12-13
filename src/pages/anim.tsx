@@ -56,16 +56,19 @@ const createRail = () => {
   const setFinished = () => {
     rail.clear()
 
-    rail.beginFill(0x85471f)
-    rail.drawRect(0, 3, 40, 9)
-    rail.drawRect(0, 16, 40, 9)
-    rail.drawRect(0, 29, 40, 9)
-    rail.endFill()
+    rail.lineStyle(9, 0x85471f)
+    rail.moveTo(0, 7.5)
+    rail.lineTo(40, 7.5)
+    rail.moveTo(0, 20.5)
+    rail.lineTo(40, 20.5)
+    rail.moveTo(0, 33.5)
+    rail.lineTo(40, 33.5)
 
-    rail.beginFill(0x583e30)
-    rail.drawRect(5, 0, 8, 40)
-    rail.drawRect(27, 0, 8, 40)
-    rail.endFill()
+    rail.lineStyle(8, 0x583e30)
+    rail.moveTo(9, 0)
+    rail.lineTo(9, 40)
+    rail.moveTo(31, 0)
+    rail.lineTo(31, 40)
   }
 
   const createAnimation = function* () {
