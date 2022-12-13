@@ -4,6 +4,8 @@ import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
 import reactLogo from './assets/react.svg'
 
+const DELTA = 0.04
+
 type ColorTree = {
   [key: string]: number | ColorTree
 }
@@ -147,6 +149,75 @@ const createRail = () => {
   }
 }
 
+const createRailCurved = () => {
+  const result = {
+    to_right_merged: {
+      rail: new PIXI.Graphics(),
+      setFinished: () => {},
+    },
+    to_left_merged: {
+      rail: new PIXI.Graphics(),
+      setFinished: () => {},
+    },
+    to_right: {
+      rail: new PIXI.Graphics(),
+      setFinished: () => {},
+    },
+    to_left: {
+      rail: new PIXI.Graphics(),
+      setFinished: () => {},
+    },
+  }
+
+  result.to_right_merged.setFinished = () => {
+    result.to_right_merged.rail.clear()
+    result.to_right_merged.rail.lineStyle(9, Color.rail.sleeper)
+    result.to_right_merged.rail.moveTo(0, 7.5)
+    result.to_right_merged.rail.lineTo(40, 7.5)
+    result.to_right_merged.rail.moveTo(0, 20.5)
+    result.to_right_merged.rail.lineTo(40, 20.5)
+    result.to_right_merged.rail.moveTo(0, 33.5)
+    result.to_right_merged.rail.lineTo(40, 33.5)
+
+    result.to_right_merged.rail.lineStyle(8, Color.rail.rail)
+    result.to_right_merged.rail.moveTo(9, 0)
+    result.to_right_merged.rail.lineTo(9, 40)
+    result.to_right_merged.rail.moveTo(31, 0)
+    result.to_right_merged.rail.lineTo(31, 40)
+
+    result.to_right_merged.rail.moveTo(9, 40)
+    result.to_right_merged.rail.arc(40, 40, 31, Math.PI, (Math.PI * 3) / 2 + DELTA)
+    result.to_right_merged.rail.moveTo(31, 0)
+    result.to_right_merged.rail.arc(40, 40, 9, Math.PI, (Math.PI * 3) / 2 + DELTA)
+  }
+  result.to_right_merged.setFinished()
+
+  result.to_left_merged.setFinished = () => {
+    result.to_right_merged.rail.clear()
+    result.to_right_merged.rail.lineStyle(9, Color.rail.sleeper)
+    result.to_right_merged.rail.moveTo(0, 7.5)
+    result.to_right_merged.rail.lineTo(40, 7.5)
+    result.to_right_merged.rail.moveTo(0, 20.5)
+    result.to_right_merged.rail.lineTo(40, 20.5)
+    result.to_right_merged.rail.moveTo(0, 33.5)
+    result.to_right_merged.rail.lineTo(40, 33.5)
+
+    result.to_right_merged.rail.lineStyle(8, Color.rail.rail)
+    result.to_right_merged.rail.moveTo(9, 0)
+    result.to_right_merged.rail.lineTo(9, 40)
+    result.to_right_merged.rail.moveTo(31, 0)
+    result.to_right_merged.rail.lineTo(31, 40)
+
+    result.to_right_merged.rail.moveTo(9, 40)
+    result.to_right_merged.rail.arc(0, 40, 31, 0, (Math.PI * 3) / 2 - DELTA, true)
+    result.to_right_merged.rail.moveTo(31, 0)
+    result.to_right_merged.rail.arc(0, 40, 9, 0, (Math.PI * 3) / 2 - DELTA, true)
+  }
+  result.to_left_merged.setFinished()
+
+  return result
+}
+
 const Anim: React.FC = () => {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -207,6 +278,12 @@ const Anim: React.FC = () => {
 
       // container.scale.set(0.5)
       app.stage.addChild(container)
+
+      const rail2 = createRailCurved()
+      rail2.to_right_merged.rail.x = 50
+      rail2.to_right_merged.rail.y = 100
+      rail2.to_right_merged.setFinished()
+      app.stage.addChild(rail2.to_right_merged.rail)
 
       const rotate = () => {
         reactIcon.rotation += 0.1
