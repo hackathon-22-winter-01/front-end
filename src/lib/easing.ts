@@ -1,3 +1,7 @@
+export const clamp = (t: number, range: readonly [number, number]) => {
+  return Math.min(Math.max(t, range[0]), range[1])
+}
+
 export type EasingFunction = (
   t: number,
   duration?: number,
@@ -40,23 +44,27 @@ const EaseFunctionGroupC = (f: EasingFunction): EaseFunctionGroup => {
 }
 
 const linearF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
+  t = clamp(t, [0, duration])
   return (t / duration) * mag + base
 }
 export const Linear = EaseFunctionGroupC(linearF)
 
 const easeInQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
+  t = clamp(t, [0, duration])
   t /= duration
   return mag * t * t + base
 }
 export const EaseIn = EaseFunctionGroupC(easeInQuadF)
 
 const easeOutQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
+  t = clamp(t, [0, duration])
   t /= duration
   return -mag * t * (t - 2) + base
 }
 export const EaseOut = EaseFunctionGroupC(easeOutQuadF)
 
 const easeInOutQuadF: EasingFunction = (t, duration = 1, base = 0, mag = 1) => {
+  t = clamp(t, [0, duration])
   t /= duration / 2
   if (t < 1) return (mag / 2) * t * t + base
   t--

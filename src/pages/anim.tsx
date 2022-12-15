@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js'
 import { useCallback, useEffect, useRef } from 'react'
 import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
+import { CurveRail, StraightRail } from '../objects/Rail'
 import reactLogo from './assets/react.svg'
 
 const DELTA = 0.04
@@ -84,8 +85,15 @@ const createRail = () => {
   }
 
   const createAnimation = function* () {
-    let tick_count = 0
-    while (tick_count <= 70) {
+    const startTime = Date.now()
+    while (true) {
+      const now = Date.now()
+      const diff_ms = now - startTime
+      const tick_count = diff_ms / (1000 / 144)
+      if (tick_count > 70) {
+        break
+      }
+
       rail.clear()
       rail.beginFill(Color.rail.sleeper)
       if (tick_count < 30) {
@@ -136,7 +144,6 @@ const createRail = () => {
       rail.endFill()
 
       yield true
-      tick_count += 1
     }
     setFinished()
     return false
@@ -186,9 +193,21 @@ const createRailCurved = () => {
     result.to_right_merged.rail.lineTo(31, 40)
 
     result.to_right_merged.rail.moveTo(9, 40)
-    result.to_right_merged.rail.arc(40, 40, 31, Math.PI, (Math.PI * 3) / 2 + DELTA)
+    result.to_right_merged.rail.arc(
+      40,
+      40,
+      31,
+      Math.PI,
+      (Math.PI * 3) / 2 + DELTA,
+    )
     result.to_right_merged.rail.moveTo(31, 0)
-    result.to_right_merged.rail.arc(40, 40, 9, Math.PI, (Math.PI * 3) / 2 + DELTA)
+    result.to_right_merged.rail.arc(
+      40,
+      40,
+      9,
+      Math.PI,
+      (Math.PI * 3) / 2 + DELTA,
+    )
   }
   result.to_right_merged.setFinished()
 
@@ -209,9 +228,23 @@ const createRailCurved = () => {
     result.to_right_merged.rail.lineTo(31, 40)
 
     result.to_right_merged.rail.moveTo(9, 40)
-    result.to_right_merged.rail.arc(0, 40, 31, 0, (Math.PI * 3) / 2 - DELTA, true)
+    result.to_right_merged.rail.arc(
+      0,
+      40,
+      31,
+      0,
+      (Math.PI * 3) / 2 - DELTA,
+      true,
+    )
     result.to_right_merged.rail.moveTo(31, 0)
-    result.to_right_merged.rail.arc(0, 40, 9, 0, (Math.PI * 3) / 2 - DELTA, true)
+    result.to_right_merged.rail.arc(
+      0,
+      40,
+      9,
+      0,
+      (Math.PI * 3) / 2 - DELTA,
+      true,
+    )
   }
   result.to_left_merged.setFinished()
 
@@ -235,42 +268,79 @@ const Anim: React.FC = () => {
       const container = new PIXI.Container()
       container.width = 400
       container.height = 400
-      let rails = new Deque<railController>()
+      let rails = new Deque<StraightRail>()
       for (let i = 0; i < 10; i++) {
-        const rail = createRail()
-        rail.rail.x = 100
-        rail.rail.y = (9 - i) * 40
+        const rail = new StraightRail()
+        rail.render.x = 120
+        rail.render.y = (9 - i) * 40
         rails.push(rail)
-        rail.setFinished()
-        container.addChild(rail.rail)
+        container.addChild(rail.render)
         // app.stage.addChild(rail.rail)
       }
       const createRailAnimationLoop = () => {
-        let tick_count = 0
+        const start_time = Date.now()
+        let hidden_rails = 0
+        let base_time_diff = 0
         const loop = () => {
-          let distance_diff = tick_count / 3
-          if (distance_diff >= 40) {
-            tick_count %= 40 * 3
-            distance_diff = tick_count / 3
-            const rail = rails.pop_front()
-            if (rail !== undefined) {
-              rails.push(rail)
-              const railAnimation = rail.createAnimation()
-              const railAnimationLoop = () => {
-                const result = railAnimation.next()
-                if (result.done) {
-                  app.ticker.remove(railAnimationLoop)
+          const current_time = Date.now()
+          const diff_ms = current_time - start_time
+          const diff_cycle = diff_ms / (1000 / 144) / 3
+          const mag = diff_cycle / diff_ms
+
+          let distance_diff = diff_cycle - hidden_rails * 40
+          while (distance_diff >= 40) {
+            distance_diff -= 40
+            hidden_rails += 1
+
+            if (distance_diff < 30) {
+              const rail = rails.pop_front()
+              if (rail !== undefined) {
+                rails.push(rail)
+                rail.init_animation(30)
+                rail.update_animation(distance_diff)
+                let last_time = Date.now()
+                const railAnimationLoop = () => {
+                  const current_time = Date.now()
+                  const diff_ms = current_time - last_time
+                  last_time = current_time
+
+                  const distance_diff = diff_ms * mag
+
+                  if (!rail.update_animation(distance_diff)) {
+                    app.ticker.remove(railAnimationLoop)
+                  }
                 }
+                app.ticker.add(railAnimationLoop)
               }
-              app.ticker.add(railAnimationLoop)
             }
           }
 
           rails.toArray().forEach((rail, i) => {
-            rail.rail.y = (9 - i) * 40 + distance_diff
+            rail.render.y = (9 - i) * 40 + distance_diff
           })
 
-          tick_count += 1
+          // if (distance_diff >= 40) {
+          //   tick_count %= 40 * 3
+          //   distance_diff = tick_count / 3
+          //   const rail = rails.pop_front()
+          //   if (rail !== undefined) {
+          //     rails.push(rail)
+          //     const railAnimation = rail.createAnimation()
+          //     const railAnimationLoop = () => {
+          //       const result = railAnimation.next()
+          //       if (result.done) {
+          //         app.ticker.remove(railAnimationLoop)
+          //       }
+          //     }
+          //     app.ticker.add(railAnimationLoop)
+          //   }
+          // }
+
+          // rails.toArray().forEach((rail, i) => {
+          //   rail.rail.y = (9 - i) * 40 + distance_diff
+          // })
+
+          // tick_count += 1
         }
         return loop
       }
@@ -279,11 +349,35 @@ const Anim: React.FC = () => {
       // container.scale.set(0.5)
       app.stage.addChild(container)
 
-      const rail2 = createRailCurved()
-      rail2.to_right_merged.rail.x = 50
-      rail2.to_right_merged.rail.y = 100
-      rail2.to_right_merged.setFinished()
-      app.stage.addChild(rail2.to_right_merged.rail)
+      {
+        const rail2 = createRailCurved()
+        rail2.to_right_merged.rail.x = 40
+        rail2.to_right_merged.rail.y = 120
+        rail2.to_right_merged.setFinished()
+        app.stage.addChild(rail2.to_right_merged.rail)
+      }
+      {
+        const rail2 = createRail()
+        rail2.rail.x = 80
+        rail2.rail.y = 120
+        rail2.rail.rotation = Math.PI / 2
+        rail2.rail.pivot.set(0, 40)
+        rail2.setFinished()
+        app.stage.addChild(rail2.rail)
+      }
+
+      {
+        const rail2 = new StraightRail()
+        rail2.render.x = 160
+        rail2.render.y = 120
+        app.stage.addChild(rail2.render)
+      }
+      {
+        const rail2 = new CurveRail('bottom_right')
+        rail2.render.x = 160
+        rail2.render.y = 80
+        app.stage.addChild(rail2.render)
+      }
 
       const rotate = () => {
         reactIcon.rotation += 0.1
