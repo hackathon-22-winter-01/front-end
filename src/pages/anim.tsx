@@ -3,7 +3,8 @@ import React from 'react'
 import { useCallback, useEffect, useRef } from 'react'
 import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
-import { Card } from '../objects/Game'
+import { WsManager } from '../lib/websocket'
+import { Card, Game } from '../objects/Game'
 import { CurveRail, StraightRail } from '../objects/Rail'
 import reactLogo from './assets/react.svg'
 
@@ -57,8 +58,8 @@ const drawAngledRect = (
 }
 
 const app = new PIXI.Application({
-  width: 400,
-  height: 400,
+  width: 800,
+  height: 800,
   backgroundColor: 0x1099bb,
   resolution: window.devicePixelRatio || 1,
   autoDensity: true,
@@ -268,7 +269,7 @@ const Anim: React.FC = () => {
       reactIcon.cursor = 'pointer'
 
       const container = new PIXI.Container()
-      container.width = 400
+      container.width = 800
       container.height = 400
       let rails = new Deque<StraightRail>()
       for (let i = 0; i < 10; i++) {
@@ -393,6 +394,26 @@ const Anim: React.FC = () => {
       card.render.x = 240
       card.render.y = 240
       app.stage.addChild(card.render)
+
+      const wsManager = new WsManager('')
+      const game = new Game(app, 4, wsManager, Date.now())
+      game.render.y = 400
+      app.stage.addChild(game.render)
+
+      // render fps
+      const fpsText = new PIXI.Text('0', {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        fill: 0xffffff,
+        align: 'center',
+      })
+      fpsText.x = 0
+      fpsText.y = 0
+      app.stage.addChild(fpsText)
+      const fpsLoop = () => {
+        fpsText.text = app.ticker.FPS.toFixed(1)
+      }
+      app.ticker.add(fpsLoop)
 
       app.start()
 

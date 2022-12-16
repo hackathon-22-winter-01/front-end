@@ -4,6 +4,11 @@ import { WsManager } from '../lib/websocket'
 
 import ReactSvg from '../pages/assets/react.svg'
 
+/**
+ * 1秒間に進むピクセル数
+ */
+const TRAIN_SPEED = 40
+
 export interface Renderable {
   get render(): PIXI.DisplayObject
 }
@@ -17,9 +22,16 @@ export class Game implements Renderable {
 
   cards: Card[]
 
+  startTime: number
+
   private container: PIXI.Container
 
-  constructor(app: PIXI.Application, playerNum: number, wsManager: WsManager) {
+  constructor(
+    app: PIXI.Application,
+    playerNum: number,
+    wsManager: WsManager,
+    startTime: number,
+  ) {
     this.app = app
 
     this.myBoard = new Board(app)
@@ -32,6 +44,9 @@ export class Game implements Renderable {
     this.cards = []
 
     this.container = new PIXI.Container()
+
+    this.startTime = startTime
+    this.init_render()
   }
 
   get render(): PIXI.DisplayObject {
@@ -47,6 +62,57 @@ export class Game implements Renderable {
 
     const card = new Card(this.app, 0)
     this.cards.push(card)
+  }
+
+  private update_handler?: (delta: number) => void
+  private init_render(): void {
+    this.clear()
+    if (this.update_handler) {
+      this.app.ticker.remove(this.update_handler)
+    }
+
+    this.container.addChild(
+      new PIXI.Graphics()
+        .beginFill(0x00ffff)
+        .drawRect(0, 0, 800, 400)
+        .endFill(),
+    )
+
+    this.container.addChild(this.myBoard.render)
+    this.myBoard.render.scale.set(0.5, 0.5)
+    this.myBoard.render.position.set(0, 0)
+
+    this.enemyBoard.forEach((board, index) => {
+      this.container.addChild(board.render)
+      board.render.scale.set(0.25, 0.25)
+      board.render.position.set(300 + 160 * index, 0)
+    })
+
+    this.cards.forEach((card, index) => {
+      this.container.addChild(card.render)
+      card.render.position.set(120 + 120 * index, 0)
+    })
+
+    this.update_handler = (_delta: number) => {
+      const nowTime_ms = Date.now()
+      const timing_ms = nowTime_ms - this.startTime
+
+      this.update_render(timing_ms)
+    }
+    this.app.ticker.add(this.update_handler)
+  }
+
+  private update_render(timing_ms: number): void {
+    this.myBoard.update_render(timing_ms)
+    this.enemyBoard.forEach((board) => {
+      board.update_render(timing_ms)
+    })
+  }
+
+  private clear(): void {
+    this.container.children.forEach((child) => {
+      child.destroy()
+    })
   }
 }
 
@@ -338,23 +404,37 @@ export class Board implements Renderable {
 
   container: PIXI.Container
 
+  private static readonly railLayout = {
+    width: 40,
+    height: 800,
+    gap_x: 40,
+  }
+
+  private static readonly zIndices = {
+    background: 0,
+    rails: 10,
+    train: 20,
+  }
+
   constructor(app: PIXI.Application) {
     this.app = app
+    const layout = Board.railLayout
 
     this.rails = [
-      new Rail(app),
-      new Rail(app),
-      new Rail(app),
-      new Rail(app, true),
-      new Rail(app),
-      new Rail(app),
-      new Rail(app),
+      new Rail(app, 0, layout),
+      new Rail(app, 1, layout),
+      new Rail(app, 2, layout),
+      new Rail(app, 3, layout, true),
+      new Rail(app, 4, layout),
+      new Rail(app, 5, layout),
+      new Rail(app, 6, layout),
     ]
     this.status = null
     this.restHP = 0
     this.maxHP = Board.DEFAULT_MAX_HP
 
     this.container = new PIXI.Container()
+    this.container.sortableChildren = true
     this.init_render()
   }
 
@@ -362,14 +442,35 @@ export class Board implements Renderable {
     return this.container
   }
 
+  private tick_handler?: () => void
+
   private init_render(): void {
     this.clear()
+    if (this.tick_handler) {
+      this.app.ticker.remove(this.tick_handler)
+      this.tick_handler = undefined
+    }
     const board = new PIXI.Graphics()
     board.beginFill(0x000000)
     board.lineStyle(2, 0xffffff)
-    board.drawRect(0, 0, 100, 100)
+    board.drawRect(0, 0, 600, 800)
     board.endFill()
+    board.zIndex = Board.zIndices.background
     this.container.addChild(board)
+
+    this.rails.forEach((rail) => {
+      rail.render.zIndex = Board.zIndices.rails
+      this.container.addChild(rail.render)
+    })
+  }
+
+  public update_render(timing_ms: number): void {
+    this.rails.forEach((rail, idx) => {
+      rail.update_render(timing_ms)
+      rail.render.x =
+        Board.railLayout.gap_x +
+        idx * (Board.railLayout.width + Board.railLayout.gap_x)
+    })
   }
 
   private clear(): void {
@@ -382,28 +483,111 @@ export class Board implements Renderable {
 type RailRelationLog =
   | {
       type: 'branched'
-      from: number
+      fromIdx: number
       timing: number
     }
   | {
       type: 'merged'
-      to: number
+      toIdx: number
       timing: number
     }
   | {
       type: 'initialized'
     }
-export class Rail {
+export class Rail implements Renderable {
   private app: PIXI.Application
+
+  private index: number
 
   statuses: RailSabotage[]
   relation_log: RailRelationLog[]
 
-  constructor(app: PIXI.Application, is_root: boolean = false) {
+  private container: PIXI.Container
+
+  private height: number
+  private width: number
+  private gap_x: number
+
+  constructor(
+    app: PIXI.Application,
+    index: number,
+    layout: {
+      height: number
+      width: number
+      gap_x: number
+    },
+    is_root: boolean = false,
+  ) {
     this.app = app
+
+    this.index = index
 
     this.statuses = []
     this.relation_log = is_root ? [{ type: 'initialized' }] : []
+
+    this.container = new PIXI.Container()
+
+    this.height = layout.height
+    this.width = layout.width
+    this.gap_x = layout.gap_x
+  }
+
+  get render(): PIXI.DisplayObject {
+    return this.container
+  }
+
+  public update_render(timing_ms: number): void {
+    class OneRailTmp implements Renderable {
+      private app: PIXI.Application
+
+      private container: PIXI.Container
+
+      constructor(app: PIXI.Application) {
+        this.app = app
+
+        this.container = new PIXI.Container()
+        this.init_render()
+      }
+
+      get render(): PIXI.DisplayObject {
+        return this.container
+      }
+
+      private init_render(): void {
+        this.clear()
+        const rail = new PIXI.Graphics()
+        rail.beginFill(0x85471f)
+        rail.lineStyle(2, 0x85471f)
+        rail.drawRect(0, 0, 40, 40)
+        rail.endFill()
+        this.container.addChild(rail)
+      }
+
+      private clear(): void {
+        this.container.children.forEach((child) => {
+          child.destroy()
+        })
+      }
+    }
+
+    this.clear()
+    const railPx = this.width
+
+    const railCount = this.height / railPx
+    const diffDelta = ((timing_ms * TRAIN_SPEED) / 1000) % railPx
+    const topMargin = (this.height % railPx) + diffDelta
+
+    for (let i = 0; i < railCount; i++) {
+      const oneRail = new OneRailTmp(this.app)
+      oneRail.render.position.set(0, topMargin + railPx * i)
+      this.container.addChild(oneRail.render)
+    }
+  }
+
+  private clear(): void {
+    this.container.children.forEach((child) => {
+      child.destroy()
+    })
   }
 }
 
