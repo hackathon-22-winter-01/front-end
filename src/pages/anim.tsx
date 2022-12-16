@@ -1,7 +1,9 @@
 import * as PIXI from 'pixi.js'
+import React from 'react'
 import { useCallback, useEffect, useRef } from 'react'
 import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
+import { Card } from '../objects/Game'
 import { CurveRail, StraightRail } from '../objects/Rail'
 import reactLogo from './assets/react.svg'
 
@@ -379,12 +381,18 @@ const Anim: React.FC = () => {
         app.stage.addChild(rail2.render)
       }
 
-      const rotate = () => {
-        reactIcon.rotation += 0.1
+      const rotate = (delta: number) => {
+        // [sum of delta / 60] is the time in seconds
+        reactIcon.rotation += 0.1 * delta
       }
       app.ticker.add(rotate)
 
       app.stage.addChild(reactIcon)
+
+      const card = new Card(app, 0)
+      card.render.x = 240
+      card.render.y = 240
+      app.stage.addChild(card.render)
 
       app.start()
 
