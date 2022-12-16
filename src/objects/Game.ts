@@ -2,6 +2,8 @@ import * as PIXI from 'pixi.js'
 import { delta_to_ms } from '../lib/converter'
 import { WsManager } from '../lib/websocket'
 
+import ReactSvg from '../pages/assets/react.svg'
+
 export interface Renderable {
   get render(): PIXI.DisplayObject
 }
@@ -89,6 +91,16 @@ export class Card implements Renderable {
 export class PressButton {
   private app: PIXI.Application
   private container: PIXI.Container
+  /*
+  <container {handlePointerEvent}>
+    <InnerContainer>
+      <ButtonBackground />
+      <ButtonImage />
+      <ButtonProgress />
+      <ContainerBorder />
+    </InnerContainer>
+  </container>
+  */
 
   /// when null, not has progress
   private needTime_ms: number | null
@@ -99,6 +111,7 @@ export class PressButton {
 
   private pressed_handler?: (this_: PressButton) => void
   private pressing_handler?: (delta_ms: number, this_: PressButton) => void
+  private eventTarget: EventTarget = new EventTarget()
 
   constructor(
     app: PIXI.Application,
@@ -138,6 +151,7 @@ export class PressButton {
   private on_press_start(): void {
     this.isPressed = true
     this.lastEventTime = Date.now()
+    this.eventTarget.dispatchEvent(new Event('press_start'))
   }
 
   private on_pressing(delta_ms: number): void {
@@ -147,16 +161,14 @@ export class PressButton {
     }
 
     this.pressing_handler?.(delta_ms, this)
+    this.eventTarget.dispatchEvent(
+      new CustomEvent('pressing', { detail: delta_ms }),
+    )
 
-    const randomColorCircle = new PIXI.Graphics()
-    randomColorCircle.lineStyle(2, 0xffffff)
-    randomColorCircle.drawCircle(48, 48, 48)
-    randomColorCircle.endFill()
-    randomColorCircle.x = Math.random() * 10
-    randomColorCircle.y = Math.random() * 10
-    ;(this.container.getChildAt(0) as PIXI.Graphics).destroy()
-    this.container.removeChildren()
-    this.container.addChild(randomColorCircle)
+    const InnerContainer = this.container.getChildAt(0) as PIXI.Container
+    InnerContainer.x = 48 + (Math.random() - 0.5) * 10
+    InnerContainer.y = 48 + (Math.random() - 0.5) * 10
+    InnerContainer.scale.set(1.2)
 
     if (this.needTime_ms === null) {
       return
@@ -175,23 +187,92 @@ export class PressButton {
   private on_press_end(): void {
     this.isPressed = false
     this.lastEventTime = Date.now()
-    this.nowTime_ms = 0
+    this.eventTarget.dispatchEvent(new Event('press_end'))
+
+    const InnerContainer = this.container.getChildAt(0) as PIXI.Container
+    InnerContainer.x = 48
+    InnerContainer.y = 48
+    InnerContainer.scale.set(1)
+  }
+
+  private on_not_pressing(delta_ms: number): void {
+    if (this.isPressed) {
+      this.isPressed = false
+      this.lastEventTime = Date.now()
+    }
+
+    if (this.needTime_ms === null) {
+      return
+    }
+
+    if (this.nowTime_ms <= 0) {
+      this.nowTime_ms = 0
+      return
+    }
+
+    this.nowTime_ms -= delta_ms * 3
+    if (this.nowTime_ms < 0) {
+      this.nowTime_ms = 0
+    }
   }
 
   private init_render(): void {
-    this.container.removeChildren()
-    const button = new PIXI.Graphics()
-    button.beginFill(0x000000)
-    button.lineStyle(2, 0xffffff)
-    button.drawCircle(48, 48, 48)
-    button.endFill()
-    this.container.addChild(button)
+    this.clear()
+    this.container.hitArea = new PIXI.Circle(48, 48, 48)
+    this.container.cursor = 'pointer'
+    {
+      const InnerContainer = new PIXI.Container()
+      const InnerContainerMask = new PIXI.Graphics()
+      InnerContainerMask.beginFill(0xffffff)
+      InnerContainerMask.drawCircle(48, 48, 49)
+      InnerContainerMask.endFill()
+      InnerContainer.mask = InnerContainerMask
+      this.container.addChild(InnerContainer)
+      {
+        // const buttonBackground = PIXI.Sprite.from(ReactSvg)
+        const ButtonBackground = PIXI.Sprite.from(PIXI.Texture.WHITE)
+        ButtonBackground.tint = 0x00ff00
+        ButtonBackground.width = 96
+        ButtonBackground.height = 96
+        InnerContainer.addChild(ButtonBackground)
+      }
+      {
+        const ButtonImage = PIXI.Sprite.from(ReactSvg)
+        ButtonImage.width = 96
+        ButtonImage.height = 96
+        InnerContainer.addChild(ButtonImage)
+      }
+      {
+        const ButtonProgress = new PIXI.Graphics()
+        InnerContainer.addChild(ButtonProgress)
+      }
+      {
+        const ContainerBorder = new PIXI.Graphics()
+        ContainerBorder.lineStyle(2, 0xffffff)
+        ContainerBorder.drawCircle(48, 48, 48)
+        ContainerBorder.endFill()
+        InnerContainer.addChild(ContainerBorder)
+      }
+      InnerContainer.addChild(InnerContainerMask)
+      InnerContainer.pivot.set(
+        InnerContainer.width / 2,
+        InnerContainer.height / 2,
+      )
+      InnerContainer.x = 48
+      InnerContainer.y = 48
+    }
 
     this.container.interactive = true
     this.container
-      .on('pointerdown', () => {
-        this.on_press_start()
-      })
+      .on(
+        'pointerdown',
+        () => {
+          this.on_press_start()
+        },
+        {
+          passive: true,
+        },
+      )
       .on('pointerup', () => {
         this.on_press_end()
       })
@@ -205,18 +286,45 @@ export class PressButton {
           this.on_press_start()
         }
       })
+
     this.app.ticker.add((delta) => {
       const delta_ms = delta_to_ms(delta)
       if (this.isPressed) {
         this.on_pressing(delta_ms)
+      } else {
+        this.on_not_pressing(delta_ms)
       }
+
+      if (this.needTime_ms === null) {
+        return
+      }
+
+      const progress = this.nowTime_ms / this.needTime_ms
+      const ButtonProgress = (
+        this.container.getChildAt(0) as PIXI.Container
+      ).getChildAt(2) as PIXI.Graphics
+      ButtonProgress.clear()
+      ButtonProgress.beginFill(0xffffff, 0.5)
+      ButtonProgress.moveTo(48, 48)
+      ButtonProgress.arc(
+        48,
+        48,
+        48,
+        -Math.PI / 2,
+        -Math.PI / 2 + progress * 2 * Math.PI,
+      )
+      ButtonProgress.lineTo(48, 48)
     })
-    this.container.hitArea = new PIXI.Circle(48, 48, 48)
-    this.container.cursor = 'pointer'
+  }
+
+  private clear(): void {
+    this.container.children.forEach((child) => {
+      child.destroy()
+    })
   }
 }
 
-export class Board {
+export class Board implements Renderable {
   static readonly DEFAULT_MAX_HP = 100
 
   private app: PIXI.Application
@@ -225,6 +333,8 @@ export class Board {
   status: null // todo
   restHP: number
   maxHP: number
+
+  container: PIXI.Container
 
   constructor(app: PIXI.Application) {
     this.app = app
@@ -236,10 +346,34 @@ export class Board {
       new Rail(app, true),
       new Rail(app),
       new Rail(app),
+      new Rail(app),
     ]
     this.status = null
     this.restHP = 0
     this.maxHP = Board.DEFAULT_MAX_HP
+
+    this.container = new PIXI.Container()
+    this.init_render()
+  }
+
+  get render(): PIXI.DisplayObject {
+    return this.container
+  }
+
+  private init_render(): void {
+    this.clear()
+    const board = new PIXI.Graphics()
+    board.beginFill(0x000000)
+    board.lineStyle(2, 0xffffff)
+    board.drawRect(0, 0, 100, 100)
+    board.endFill()
+    this.container.addChild(board)
+  }
+
+  private clear(): void {
+    this.container.children.forEach((child) => {
+      child.destroy()
+    })
   }
 }
 
