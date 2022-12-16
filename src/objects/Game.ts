@@ -405,9 +405,9 @@ export class Board implements Renderable {
   container: PIXI.Container
 
   private static readonly railLayout = {
-    width: 40,
+    width: 36,
     height: 800,
-    gap_x: 40,
+    gap_x: 36,
   }
 
   private static readonly zIndices = {
@@ -451,9 +451,8 @@ export class Board implements Renderable {
       this.tick_handler = undefined
     }
     const board = new PIXI.Graphics()
-    board.beginFill(0x000000)
-    board.lineStyle(2, 0xffffff)
-    board.drawRect(0, 0, 600, 800)
+    board.beginFill(0xf9f5ea)
+    board.drawRect(0, 0, 520, 800)
     board.endFill()
     board.zIndex = Board.zIndices.background
     this.container.addChild(board)
@@ -462,13 +461,20 @@ export class Board implements Renderable {
       rail.render.zIndex = Board.zIndices.rails
       this.container.addChild(rail.render)
     })
+
+    const ContainerMask = new PIXI.Graphics()
+    ContainerMask.beginFill(0xffffff)
+    ContainerMask.drawRoundedRect(0, 0, 520, 800, 12)
+    ContainerMask.endFill()
+    this.container.addChild(ContainerMask)
+    this.container.mask = ContainerMask
   }
 
   public update_render(timing_ms: number): void {
     this.rails.forEach((rail, idx) => {
       rail.update_render(timing_ms)
       rail.render.x =
-        Board.railLayout.gap_x +
+        (520 - Board.railLayout.width * 7 - Board.railLayout.gap_x * 6) / 2 +
         idx * (Board.railLayout.width + Board.railLayout.gap_x)
     })
   }
@@ -536,6 +542,8 @@ export class Rail implements Renderable {
     return this.container
   }
 
+  private static readonly topMargin = [90, 150, 40, 0, 50, 100, 20] as const
+
   public update_render(timing_ms: number): void {
     class OneRailTmp implements Renderable {
       private app: PIXI.Application
@@ -574,7 +582,8 @@ export class Rail implements Renderable {
 
     const railCount = this.height / railPx
     const diffDelta = ((timing_ms * TRAIN_SPEED) / 1000) % railPx
-    const topMargin = (this.height % railPx) + diffDelta
+    const topMargin =
+      (this.height % railPx) + diffDelta + Rail.topMargin[this.index]
 
     for (let i = 0; i < railCount; i++) {
       const oneRail = new OneRailTmp(this.app)
