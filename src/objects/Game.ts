@@ -234,9 +234,9 @@ export class PressButton {
     )
 
     const InnerContainer = this.container.getChildAt(0) as PIXI.Container
-    InnerContainer.x = 48 + (Math.random() - 0.5) * 10
-    InnerContainer.y = 48 + (Math.random() - 0.5) * 10
-    InnerContainer.scale.set(1.2)
+    InnerContainer.x = 48 + (Math.random() - 0.5) * 6
+    InnerContainer.y = 48 + (Math.random() - 0.5) * 6
+    InnerContainer.scale.set(0.9)
 
     if (this.needTime_ms === null) {
       return
