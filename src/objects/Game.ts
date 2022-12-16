@@ -156,7 +156,7 @@ export class Card implements Renderable {
   }
 }
 
-export class PressButton {
+export class PressButton implements Renderable {
   private app: PIXI.Application
   private container: PIXI.Container
   /*
