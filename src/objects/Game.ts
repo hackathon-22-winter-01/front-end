@@ -104,10 +104,7 @@ export class Game implements Renderable {
 
   private update_render(timing_ms: number): void {
     this.myBoard.update_render(timing_ms)
-    this.enemyBoard.forEach((board, idx) => {
-      // if (idx > 1) {
-      //   return
-      // }
+    this.enemyBoard.forEach((board) => {
       board.update_render(timing_ms)
     })
   }
