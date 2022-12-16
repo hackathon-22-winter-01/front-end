@@ -78,7 +78,7 @@ export class Card implements Renderable {
     this.container.removeChildren()
     const card = new PIXI.Graphics()
     card.beginFill(0xaeaeae)
-    card.drawRect(0, 0, 120, 144)
+    card.drawRoundedRect(0, 0, 120, 144, 10)
     card.endFill()
     this.container.addChild(card)
 
