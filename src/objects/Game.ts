@@ -104,7 +104,10 @@ export class Game implements Renderable {
 
   private update_render(timing_ms: number): void {
     this.myBoard.update_render(timing_ms)
-    this.enemyBoard.forEach((board) => {
+    this.enemyBoard.forEach((board, idx) => {
+      // if (idx > 1) {
+      //   return
+      // }
       board.update_render(timing_ms)
     })
   }
@@ -555,11 +558,10 @@ export class Rail implements Renderable {
 
       private init_render(): void {
         this.clear()
-        const rail = new PIXI.Graphics()
-        rail.beginFill(0x85471f)
-        rail.lineStyle(2, 0x85471f)
-        rail.drawRect(0, 0, 40, 40)
-        rail.endFill()
+        const rail = PIXI.Sprite.from(PIXI.Texture.WHITE)
+        rail.width = 40
+        rail.height = 40
+        rail.tint = 0x85471f
         this.container.addChild(rail)
       }
 
