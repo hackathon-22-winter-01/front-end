@@ -85,6 +85,8 @@ export class Card implements Renderable {
     this.container.addChild(card)
 
     this.container.addChild(this.button.render)
+    this.button.render.pivot.set(48, 48)
+    this.button.render.position.set(60, 60)
   }
 }
 
