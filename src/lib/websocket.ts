@@ -55,7 +55,7 @@ const wsReceiveSchema = z
       body: z.object({
         playerId: z.string(),
         cardType: cardTypeSchema,
-        new: z.number().nonnegative().max(100),
+        newLife: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
