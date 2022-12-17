@@ -50,7 +50,7 @@ const wsReceiveSchema = z
       body: z.object({
         playerId: z.string(),
         cardType: cardTypeSchema.nullable(),
-        new: z.number().nonnegative().max(100),
+        newLife: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
@@ -78,6 +78,7 @@ const wsReceiveSchema = z
         attackerId: z.string(),
         targetId: z.string(),
         cardType: cardTypeSchema,
+        railIndex: railIndexSchema,
         delay: z.number(),
         attack: z.number(),
       }),

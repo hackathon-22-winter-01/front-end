@@ -16,10 +16,11 @@ export class Card implements Renderable {
     this.cardID = cardID
 
     this.container = new PIXI.Container()
-    this.button = new PressButton(app, 1000, (this_) => {
+    this.button = new PressButton(app, 1000)
+    this.button.pressed = (this_) => {
       console.log('pressed')
       this_.reset_progress()
-    })
+    }
 
     this.init_render()
   }

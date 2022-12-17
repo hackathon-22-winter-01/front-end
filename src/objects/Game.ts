@@ -23,18 +23,37 @@ export class Game implements Renderable {
 
   private container: PIXI.Container
 
+  private readonly player_list: {
+    id: string
+    name: string
+  }[]
+  private readonly my_id: string
+
   constructor(
     app: PIXI.Application,
     playerNum: number,
     wsManager: WsManager,
     startTime: number,
+    player_list: {
+      id: string
+      name: string
+    }[],
+    my_id: string,
   ) {
     this.app = app
 
-    this.myBoard = new Board(app, true)
+    this.player_list = player_list
+    this.my_id = my_id
+
+    this.myBoard = new Board(app, my_id, wsManager, true)
     this.enemyBoard = Array.from(
       { length: playerNum - 1 },
-      () => new Board(app),
+      (_, i) =>
+        new Board(
+          app,
+          player_list.filter((x) => x.id !== my_id)[i].id,
+          wsManager,
+        ),
     )
     this.wsManager = wsManager
 

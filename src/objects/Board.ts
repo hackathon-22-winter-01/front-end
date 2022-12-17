@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js'
+import { WsManager, WsReceive } from '../lib/websocket'
 import { Rail } from './Rail'
 import { Renderable } from './Renderable'
 
@@ -7,12 +8,17 @@ export class Board implements Renderable {
 
   private app: PIXI.Application
 
+  private wsManager?: WsManager
+
   rails: Rail[]
   status: null // todo
   restHP: number
   maxHP: number
 
   private isMine: boolean
+  private ownerId: string
+
+  private isGameOver: boolean = false
 
   container: PIXI.Container
 
@@ -28,32 +34,83 @@ export class Board implements Renderable {
     train: 20,
   }
 
-  constructor(app: PIXI.Application, isMine: boolean = false) {
+  constructor(
+    app: PIXI.Application,
+    ownerId: string,
+    wsManager?: WsManager,
+    isMine: boolean = false,
+  ) {
     this.app = app
     const layout = Board.railLayout
 
     this.rails = [
-      new Rail(app, 0, layout),
-      new Rail(app, 1, layout),
-      new Rail(app, 2, layout),
-      new Rail(app, 3, layout, true),
-      new Rail(app, 4, layout),
-      new Rail(app, 5, layout),
-      new Rail(app, 6, layout),
+      new Rail(app, ownerId, 0, layout, false, wsManager, isMine),
+      new Rail(app, ownerId, 1, layout, false, wsManager, isMine),
+      new Rail(app, ownerId, 2, layout, false, wsManager, isMine),
+      new Rail(app, ownerId, 3, layout, true, wsManager, isMine),
+      new Rail(app, ownerId, 4, layout, false, wsManager, isMine),
+      new Rail(app, ownerId, 5, layout, false, wsManager, isMine),
+      new Rail(app, ownerId, 6, layout, false, wsManager, isMine),
     ]
     this.status = null
     this.restHP = Board.DEFAULT_MAX_HP
     this.maxHP = Board.DEFAULT_MAX_HP
+
+    this.ownerId = ownerId
 
     this.isMine = isMine
 
     this.container = new PIXI.Container()
     this.container.sortableChildren = true
     this.init_render()
+
+    if (wsManager) {
+      this.wsManager = wsManager
+      this.wsManager.eventTarget.addEventListener('message', (event) => {
+        const e = event as CustomEvent<WsReceive>
+        this.ws_handler(e.detail)
+      })
+    }
   }
 
   get render(): PIXI.DisplayObject {
     return this.container
+  }
+
+  private ws_handler(detail: WsReceive): void {
+    switch (detail.type) {
+      case 'lifeChanged': {
+        const { body } = detail
+        if (body.playerId !== this.ownerId) {
+          return
+        }
+
+        this.restHP = body.newLife
+        break
+      }
+      case 'blockCrashed': {
+        const { body } = detail
+        if (body.targetId !== this.ownerId) {
+          return
+        }
+
+        this.restHP = body.newLife
+        break
+      }
+      case 'gameOverred': {
+        const { body } = detail
+        if (body.playerId !== this.ownerId) {
+          return
+        }
+
+        // TODO: ゲームオーバーの処理 (イベントは通常通り届くし、送れる)
+        this.isGameOver = true
+        break
+      }
+      default: {
+        // nop
+      }
+    }
   }
 
   private tick_handler?: () => void
