@@ -11,6 +11,7 @@ export interface Options {
 
 const railSchema = z.object({
   id: z.string(),
+  index: z.number(),
 })
 const playerSchema = z.object({
   id: z.string(),
@@ -22,6 +23,16 @@ const cardSchema = z.object({
   id: z.string(),
   type: z.string(),
 })
+const cardTypeSchema = z.union([
+  z.literal('yolo'),
+  z.literal('galaxyBrain'),
+  z.literal('openSourcerer'),
+  z.literal('refactoring'),
+  z.literal('pairExtraordinaire'),
+  z.literal('lgtm'),
+  z.literal('pullShark'),
+  z.literal('starstruck'),
+])
 
 const wsReceiveSchema = z
   .union([
@@ -57,17 +68,18 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('railCreated'),
       body: z.object({
-        id: z.string(),
-        parentId: z.string(),
+        newRail: railSchema,
+        parentRail: railSchema,
         attackerId: z.string(),
         targetId: z.string(),
+        cardType: cardTypeSchema,
       }),
     }),
     z.object({
       type: z.literal('railMerged'),
       body: z.object({
-        childId: z.string(),
-        parentId: z.string(),
+        childRail: railSchema,
+        parentRail: railSchema,
         playerId: z.string(),
       }),
     }),
@@ -83,13 +95,13 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('blockCanceled'),
       body: z.object({
-        railId: z.string(),
+        rail: railSchema,
       }),
     }),
     z.object({
       type: z.literal('blockCrashed'),
       body: z.object({
-        railId: z.string(),
+        rail: railSchema,
         playerId: z.string(),
         new: z.number().nonnegative().max(100),
       }),
@@ -126,23 +138,14 @@ const wsSendSchema = z.union([
     body: z.object({
       id: z.string(),
       targetId: z.string(),
-      type: z.union([
-        z.literal('yolo'),
-        z.literal('galaxyBrain'),
-        z.literal('openSourcerer'),
-        z.literal('refactoring'),
-        z.literal('pairExtraordinaire'),
-        z.literal('lgtm'),
-        z.literal('pullShark'),
-        z.literal('starstruck'),
-      ]),
+      type: cardTypeSchema,
     }),
   }),
   z.object({
     type: z.literal('blockEvent'),
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
-      railId: z.string(),
+      rail: railSchema,
     }),
   }),
 ])
