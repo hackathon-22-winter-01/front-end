@@ -92,7 +92,7 @@ const wsReceiveSchema = z
       body: z.object({
         targetId: z.string(),
         rail: railSchema,
-        cardType: cardTypeSchema,
+        cardType: cardTypeSchema.nullable(),
       }),
     }),
     z.object({
@@ -100,7 +100,7 @@ const wsReceiveSchema = z
       body: z.object({
         targetId: z.string(),
         rail: railSchema,
-        cardType: cardTypeSchema,
+        cardType: cardTypeSchema.nullable(),
         newLife: z.number().nonnegative().max(100),
       }),
     }),
@@ -143,7 +143,7 @@ const wsSendSchema = z.union([
     type: z.literal('blockEvent'),
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
-      cardType: cardTypeSchema,
+      cardType: cardTypeSchema.nullable(),
       rail: railSchema,
     }),
   }),
