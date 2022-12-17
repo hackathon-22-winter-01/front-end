@@ -87,7 +87,44 @@ const wsReceiveSchema = z.union([
   }),
 ])
 type WsReceive = z.infer<typeof wsReceiveSchema>
-type WsSend = null // TODO
+
+const wsSendSchema = z.union([
+  z.object({
+    type: z.literal('gameStartEvent'),
+    body: z.object({}),
+  }),
+  z.object({
+    type: z.literal('lifeEvent'),
+    body: z.object({
+      type: z.union([z.literal('damaged'), z.literal('heal')]),
+    }),
+  }),
+  z.object({
+    type: z.literal('cardEvent'),
+    body: z.object({
+      id: z.string(),
+      targetId: z.string(),
+      type: z.union([
+        z.literal('yolo'),
+        z.literal('galaxyBrain'),
+        z.literal('openSourcerer'),
+        z.literal('refactoring'),
+        z.literal('pairExtraordinaire'),
+        z.literal('lgtm'),
+        z.literal('pullShark'),
+        z.literal('starstruck'),
+      ]),
+    }),
+  }),
+  z.object({
+    type: z.literal('blockEvent'),
+    body: z.object({
+      type: z.literal('canceled'),
+      railId: z.string(),
+    }),
+  }),
+])
+type WsSend = z.infer<typeof wsSendSchema>
 
 interface IWsManager {
   get isOpen(): boolean
@@ -153,3 +190,4 @@ export class WsManager implements IWsManager {
     return this._eventTarget
   }
 }
+s
