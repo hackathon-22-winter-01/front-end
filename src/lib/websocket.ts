@@ -78,6 +78,7 @@ const wsReceiveSchema = z
         attackerId: z.string(),
         targetId: z.string(),
         cardType: cardTypeSchema,
+        railIndex: railIndexSchema,
         delay: z.number(),
         attack: z.number(),
       }),
