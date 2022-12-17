@@ -117,7 +117,7 @@ const wsReceiveSchema = z
       eventTime: z.string().transform((z) => new Date(z).getTime()),
     }),
   )
-type WsReceive = z.infer<typeof wsReceiveSchema>
+export type WsReceive = z.infer<typeof wsReceiveSchema>
 
 const wsSendSchema = z.union([
   z.object({
