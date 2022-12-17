@@ -1,9 +1,11 @@
 import * as PIXI from 'pixi.js'
-import { delta_to_ms } from '../lib/converter'
 import { Renderable } from './Renderable'
 import ReactSvg from '../pages/assets/react.svg'
+import { PressProgressManager } from '../lib/pressManager'
 
 export class PressButton implements Renderable {
+  private progress_manager: PressProgressManager
+
   private app: PIXI.Application
   private container: PIXI.Container
   /*
@@ -17,34 +19,24 @@ export class PressButton implements Renderable {
     </container>
     */
 
-  /// when null, not has progress
-  private needTime_ms: number | null
-  private nowTime_ms: number = 0
+  constructor(app: PIXI.Application, needTime: number | null) {
+    this.progress_manager = new PressProgressManager(app, needTime)
 
-  private isPressed: boolean = false
-  private lastEventTime: number
-
-  private pressed_handler?: (this_: PressButton) => void
-  private pressing_handler?: (delta_ms: number, this_: PressButton) => void
-  private eventTarget: EventTarget = new EventTarget()
-
-  constructor(
-    app: PIXI.Application,
-    needTime: number | null,
-    pressed_handler?: (this_: PressButton) => void,
-    pressing_handler?: (delta_ms: number, this_: PressButton) => void,
-  ) {
     this.app = app
 
     this.container = new PIXI.Container()
 
-    this.needTime_ms = needTime
-
-    this.pressed_handler = pressed_handler
-    this.pressing_handler = pressing_handler
-    this.lastEventTime = Date.now()
-
     this.init_render()
+  }
+
+  set pressed(handler: (this_: PressProgressManager) => void) {
+    this.progress_manager.pressed = handler
+  }
+  set pressing(handler: (
+    delta_ms: number,
+    this_: PressProgressManager,
+  ) => void) {
+    this.progress_manager.pressing = handler
   }
 
   get render(): PIXI.DisplayObject {
@@ -52,83 +44,15 @@ export class PressButton implements Renderable {
   }
 
   get progress(): number | null {
-    if (this.needTime_ms === null) {
-      return null
-    }
+    return this.progress_manager.progress
+  }
 
-    return this.nowTime_ms / this.needTime_ms
+  get eventTarget(): EventTarget {
+    return this.progress_manager.eventTarget
   }
 
   public reset_progress(): void {
-    this.nowTime_ms = 0
-  }
-
-  private on_press_start(): void {
-    this.isPressed = true
-    this.lastEventTime = Date.now()
-    this.eventTarget.dispatchEvent(new Event('press_start'))
-  }
-
-  private on_pressing(delta_ms: number): void {
-    if (!this.isPressed) {
-      this.isPressed = true
-      this.lastEventTime = Date.now()
-    }
-
-    this.pressing_handler?.(delta_ms, this)
-    this.eventTarget.dispatchEvent(
-      new CustomEvent('pressing', { detail: delta_ms }),
-    )
-
-    const InnerContainer = this.container.getChildAt(0) as PIXI.Container
-    InnerContainer.x = 48 + (Math.random() - 0.5) * 6
-    InnerContainer.y = 48 + (Math.random() - 0.5) * 6
-    InnerContainer.scale.set(0.9)
-
-    if (this.needTime_ms === null) {
-      return
-    }
-
-    if (this.nowTime_ms > this.needTime_ms) {
-      return
-    }
-
-    this.nowTime_ms += delta_ms
-    if (this.nowTime_ms > this.needTime_ms) {
-      this.pressed_handler?.(this)
-    }
-  }
-
-  private on_press_end(): void {
-    this.isPressed = false
-    this.lastEventTime = Date.now()
-    this.eventTarget.dispatchEvent(new Event('press_end'))
-
-    const InnerContainer = this.container.getChildAt(0) as PIXI.Container
-    InnerContainer.x = 48
-    InnerContainer.y = 48
-    InnerContainer.scale.set(1)
-  }
-
-  private on_not_pressing(delta_ms: number): void {
-    if (this.isPressed) {
-      this.isPressed = false
-      this.lastEventTime = Date.now()
-    }
-
-    if (this.needTime_ms === null) {
-      return
-    }
-
-    if (this.nowTime_ms <= 0) {
-      this.nowTime_ms = 0
-      return
-    }
-
-    this.nowTime_ms -= delta_ms * 3
-    if (this.nowTime_ms < 0) {
-      this.nowTime_ms = 0
-    }
+    this.progress_manager.reset_progress()
   }
 
   private init_render(): void {
@@ -177,59 +101,50 @@ export class PressButton implements Renderable {
       InnerContainer.y = 48
     }
 
-    this.container.interactive = true
-    this.container
-      .on(
-        'pointerdown',
-        () => {
-          this.on_press_start()
-        },
-        {
-          passive: true,
-        },
-      )
-      .on('pointerup', () => {
-        this.on_press_end()
-      })
-      .on('pointerleave', () => {
-        if (this.isPressed) {
-          this.on_press_end()
-        }
-      })
-      .on('pointerenter', (e) => {
-        if (e.isPrimary && e.buttons > 0) {
-          this.on_press_start()
-        }
-      })
-
-    this.app.ticker.add((delta) => {
-      const delta_ms = delta_to_ms(delta)
-      if (this.isPressed) {
-        this.on_pressing(delta_ms)
-      } else {
-        this.on_not_pressing(delta_ms)
-      }
-
-      if (this.needTime_ms === null) {
+    let delay = 0
+    this.progress_manager.eventTarget.addEventListener('pressing', (event) => {
+      const e = event as CustomEvent<number>
+      delay += e.detail
+      if (delay < 50) {
         return
       }
-
-      const progress = this.nowTime_ms / this.needTime_ms
-      const ButtonProgress = (
-        this.container.getChildAt(0) as PIXI.Container
-      ).getChildAt(2) as PIXI.Graphics
-      ButtonProgress.clear()
-      ButtonProgress.beginFill(0xffffff, 0.5)
-      ButtonProgress.moveTo(48, 48)
-      ButtonProgress.arc(
-        48,
-        48,
-        48,
-        -Math.PI / 2,
-        -Math.PI / 2 + progress * 2 * Math.PI,
-      )
-      ButtonProgress.lineTo(48, 48)
+      delay %= 50
+      const InnerContainer = this.container.getChildAt(0) as PIXI.Container
+      InnerContainer.x = 48 + (Math.random() - 0.5) * 6
+      InnerContainer.y = 48 + (Math.random() - 0.5) * 6
+      InnerContainer.scale.set(0.9)
     })
+    this.progress_manager.eventTarget.addEventListener('press_end', () => {
+      const InnerContainer = this.container.getChildAt(0) as PIXI.Container
+      InnerContainer.x = 48
+      InnerContainer.y = 48
+      InnerContainer.scale.set(1)
+    })
+
+    this.progress_manager.setHandler(this.container)
+
+    this.progress_manager.eventTarget.addEventListener(
+      'update_progress',
+      (event) => {
+        const e = event as CustomEvent<number>
+        const progress = e.detail
+        const ButtonProgress = (
+          this.container.getChildAt(0) as PIXI.Container
+        ).getChildAt(2) as PIXI.Graphics
+        ButtonProgress.clear()
+        ButtonProgress.beginFill(0xffffff, 0.5)
+        ButtonProgress.moveTo(48, 48)
+        ButtonProgress.arc(
+          48,
+          48,
+          48,
+          -Math.PI / 2,
+          -Math.PI / 2 + progress * 2 * Math.PI,
+        )
+        ButtonProgress.lineTo(48, 48)
+        ButtonProgress.endFill()
+      },
+    )
   }
 
   private clear(): void {
