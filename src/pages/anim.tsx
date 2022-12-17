@@ -396,7 +396,11 @@ const Anim: React.FC = () => {
       // card.render.y = 240
       // app.stage.addChild(card.render)
 
-      const wsManager = new WsManager('')
+      // TODO: remove localhost when deployed
+      const wsManager = new WsManager(
+        'ws://localhost:8080/api/v1/ws',
+        'e67d85b3-df0e-ad4a-2501-6467296f23cb',
+      )
       const game = new Game(app, 4, wsManager, Date.now())
       // game.render.y =
       app.stage.addChild(game.render)

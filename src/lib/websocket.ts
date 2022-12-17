@@ -43,8 +43,8 @@ export class WsManager implements IWsManager {
   private ws?: WebSocket
   private _eventTarget: EventTarget = new EventTarget()
 
-  constructor(targetUrl: string) {
-    this.url = targetUrl
+  constructor(targetUrl: string, userID: string) {
+    this.url = `${targetUrl}?playerId=${userID}`
   }
 
   get isOpen(): boolean {
