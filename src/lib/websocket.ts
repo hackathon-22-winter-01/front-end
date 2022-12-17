@@ -57,15 +57,6 @@ const wsReceiveSchema = z
       }),
     }),
     z.object({
-      type: z.literal('cardReset'),
-      body: z.array(
-        z.object({
-          playerId: z.string(),
-          cards: z.array(cardSchema),
-        }),
-      ),
-    }),
-    z.object({
       type: z.literal('railCreated'),
       body: z.object({
         newRail: railSchema,
