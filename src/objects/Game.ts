@@ -31,7 +31,7 @@ export class Game implements Renderable {
   ) {
     this.app = app
 
-    this.myBoard = new Board(app)
+    this.myBoard = new Board(app, true)
     this.enemyBoard = Array.from(
       { length: playerNum - 1 },
       () => new Board(app),
@@ -71,7 +71,7 @@ export class Game implements Renderable {
     // Background
     {
       const AllBackground = new PIXI.Sprite(PIXI.Texture.WHITE)
-      AllBackground.width = 1396
+      AllBackground.width = 1444
       AllBackground.height = 892
       AllBackground.position.set(0, 0)
       AllBackground.tint = 0x00ffff
@@ -100,7 +100,7 @@ export class Game implements Renderable {
       this.container.addChild(EnemyBoardWrapper)
       {
         const EnemyBoardBackground = new PIXI.Sprite(PIXI.Texture.WHITE)
-        EnemyBoardBackground.width = 828
+        EnemyBoardBackground.width = 876
         EnemyBoardBackground.height = 552
         EnemyBoardBackground.position.set(0, 0)
         EnemyBoardBackground.tint = 0x71dbf2
@@ -109,7 +109,7 @@ export class Game implements Renderable {
       {
         this.enemyBoard.forEach((board, index) => {
           EnemyBoardWrapper.addChild(board.render)
-          board.render.position.set(16 + (260 + 8) * index, 12)
+          board.render.position.set(16 + 8 + (260 + 8 * 3) * index, 12)
           board.render.scale.set(0.5, 0.5)
         })
       }
@@ -120,7 +120,7 @@ export class Game implements Renderable {
       this.container.addChild(CardWrapper)
       {
         const CardBackground = new PIXI.Sprite(PIXI.Texture.WHITE)
-        CardBackground.width = 828
+        CardBackground.width = 876
         CardBackground.height = 280
         CardBackground.position.set(0, 0)
         CardBackground.tint = 0x71dbf2

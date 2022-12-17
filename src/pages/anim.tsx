@@ -59,7 +59,7 @@ const drawAngledRect = (
 }
 
 const app = new PIXI.Application({
-  width: 1396,
+  width: 1444,
   height: 892,
   backgroundColor: 0x1099bb,
   resolution: window.devicePixelRatio || 1,
