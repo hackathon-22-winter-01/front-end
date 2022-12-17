@@ -1,0 +1,87 @@
+## gitea に同期する用の actions
+name: main
+
+on:
+  push:
+    branches:
+      - "main"
+
+env:
+  GITEA_SSH_URL: "ssh://git@git.trap.jp:2200/hackathon-22-winter-01/front-end.git"
+  NODE_VERSION: "19"
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: set node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{env.NODE_VERSION}}
+          cache: yarn
+      - name: lint
+        uses: rome/setup-rome@v0.4
+        with:
+          version: latest
+        run: rome check .
+  format:
+    name: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: set node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{env.NODE_VERSION}}
+          cache: yarn
+      - name: format
+        uses: rome/setup-rome@v0.4
+        with:
+          version: latest
+        run: rome format .
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: set node version
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{env.NODE_VERSION}}
+          cache: yarn
+      - name: install
+        run: yarn --check-files --frozen-lockfile --non-interactive
+      - name: build
+        run: yarn build
+  sync:
+    name: sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: restore cache
+        uses: actions
+        with:
+          path: .output
+          key: build-${{github.sha}}
+      - name: set config
+        run: |
+          echo "${{ secrets.GITEA_TOKEN }}" > ~/deploy_key.pem
+          chmod 600 ~/deploy_key.pem
+          git config --local user.email "github@actions"
+          git config --local user.name "github"
+      - name: commit (include build)
+        run: |
+          git add .output -f
+          git commit -m "[build] ${{ github.event.head_commit.id }}"
+      - name: Push changes
+        env:
+          GIT_SSH_COMMAND: ssh -i ~/deploy_key.pem -o StrictHostKeyChecking=no -F /dev/null
+        run: |
+          git fetch --unshallow origin
+          git push -f ${{ env.GITEA_SSH_URL }} main:master
