@@ -97,6 +97,7 @@ const wsSendSchema = z.union([
     type: z.literal('lifeEvent'),
     body: z.object({
       type: z.union([z.literal('damaged'), z.literal('heal')]),
+      diff: z.number(),
     }),
   }),
   z.object({
