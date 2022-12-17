@@ -191,4 +191,3 @@ export class WsManager implements IWsManager {
     return this._eventTarget
   }
 }
-s
