@@ -2,10 +2,10 @@ import { z } from 'zod'
 
 export interface Rail {
   id: string
-  hasBlock: boolean
+  index: number
 }
 
 export const railSchema = z.object({
   id: z.string(),
-  hasBlock: z.boolean(),
+  index: z.number(),
 })
