@@ -23,69 +23,76 @@ const cardSchema = z.object({
   type: z.string(),
 })
 
-const wsReceiveSchema = z.union([
-  z.object({
-    type: z.literal('connected'),
-    body: z.object({
-      playerId: z.string(),
-    }),
-  }),
-  z.object({
-    type: z.literal('gameStarted'),
-    body: z.object({
-      players: z.array(playerSchema),
-      cards: z.array(cardSchema),
-    }),
-  }),
-  z.object({
-    type: z.literal('lifeChanged'),
-    body: z.object({
-      playerId: z.string(),
-      new: z.number(),
-    }),
-  }),
-  z.object({
-    type: z.literal('cardReset'),
-    body: z.array(
-      z.object({
+const wsReceiveSchema = z
+  .union([
+    z.object({
+      type: z.literal('connected'),
+      body: z.object({
         playerId: z.string(),
+      }),
+    }),
+    z.object({
+      type: z.literal('gameStarted'),
+      body: z.object({
+        players: z.array(playerSchema),
         cards: z.array(cardSchema),
       }),
-    ),
-  }),
-  z.object({
-    type: z.literal('railCreated'),
-    body: z.object({
-      id: z.string(),
-      parentId: z.string(),
-      attackerId: z.string(),
-      targetId: z.string(),
     }),
-  }),
-  z.object({
-    type: z.literal('railMerged'),
-    body: z.object({
-      childId: z.string(),
-      parentId: z.string(),
-      playerId: z.string(),
+    z.object({
+      type: z.literal('lifeChanged'),
+      body: z.object({
+        playerId: z.string(),
+        new: z.number(),
+      }),
     }),
-  }),
-  z.object({
-    type: z.literal('blockCreated'),
-    body: z.object({
-      attackerId: z.string(),
-      targetId: z.string(),
-      delay: z.number(),
-      attack: z.number(),
+    z.object({
+      type: z.literal('cardReset'),
+      body: z.array(
+        z.object({
+          playerId: z.string(),
+          cards: z.array(cardSchema),
+        }),
+      ),
     }),
-  }),
-  z.object({
-    type: z.literal('blockCanceled'),
-    body: z.object({
-      railId: z.string(),
+    z.object({
+      type: z.literal('railCreated'),
+      body: z.object({
+        id: z.string(),
+        parentId: z.string(),
+        attackerId: z.string(),
+        targetId: z.string(),
+      }),
     }),
-  }),
-])
+    z.object({
+      type: z.literal('railMerged'),
+      body: z.object({
+        childId: z.string(),
+        parentId: z.string(),
+        playerId: z.string(),
+      }),
+    }),
+    z.object({
+      type: z.literal('blockCreated'),
+      body: z.object({
+        attackerId: z.string(),
+        targetId: z.string(),
+        delay: z.number(),
+        attack: z.number(),
+      }),
+    }),
+    z.object({
+      type: z.literal('blockCanceled'),
+      body: z.object({
+        railId: z.string(),
+      }),
+    }),
+  ])
+  .and(
+    z.object({
+      // format: 0001-01-01T00:00:00Z
+      eventTime: z.string().transform((z) => new Date(z).getTime()),
+    }),
+  )
 type WsReceive = z.infer<typeof wsReceiveSchema>
 type WsSend = null // TODO
 
