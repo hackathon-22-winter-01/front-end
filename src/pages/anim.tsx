@@ -58,8 +58,8 @@ const drawAngledRect = (
 }
 
 const app = new PIXI.Application({
-  width: 800,
-  height: 800,
+  width: 1396,
+  height: 892,
   backgroundColor: 0x1099bb,
   resolution: window.devicePixelRatio || 1,
   autoDensity: true,
@@ -397,7 +397,7 @@ const Anim: React.FC = () => {
 
       const wsManager = new WsManager('')
       const game = new Game(app, 4, wsManager, Date.now())
-      game.render.y = 400
+      // game.render.y =
       app.stage.addChild(game.render)
 
       // render fps
