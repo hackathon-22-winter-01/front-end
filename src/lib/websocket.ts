@@ -9,23 +9,74 @@ export interface Options {
   connectionTimeout: number
 }
 
+const railSchema = z.object({
+	id: z.string(),
+})
+const playerSchema = z.object({
+	id: z.string(),
+	mainRail: railSchema,
+	rails: z.array(railSchema),
+	life: z.number(),
+})
+const cardSchema = z.object({
+	id: z.string(),
+	type: z.string(),
+})
+
 const wsReceiveSchema = z.union([
-  z.object({
-    type: z.literal('cardUsed'),
-    body: z.object({
-      id: z.string(),
-      playerId: z.string(),
-    }),
-  }),
-  z.object({
-    type: z.literal('railCreated'),
-    body: z.object({
-      id: z.string(),
-      parentId: z.string(),
-      attackerId: z.string(),
-      targetId: z.string(),
-    }),
-  }),
+	z.object({
+		type: z.literal('connected'),
+		body: z.object({
+			playerId: z.string(),
+		}),
+	}),
+	z.object({
+		type: z.literal('gameStarted'),
+		body: z.object({
+			players: z.array(playerSchema),
+			cards: z.array(cardSchema),
+		}),
+	}),
+	z.object({
+		type: z.literal('lifeChanged'),
+		body: z.object({
+			playerId: z.string(),
+			new: z.number(),
+		}),
+	}),
+	z.object({
+		type: z.literal('cardReset'),
+		body: z.object({
+			playerId: z.string(),
+			cards: z.array(cardSchema),
+		}),
+	}),
+	z.object({
+		type: z.literal('railCreated'),
+		body: z.object({
+			id: z.string(),
+			parentId: z.string(),
+			attackerId: z.string(),
+			targetId: z.string(),
+		}),
+	}),
+	z.object({
+		type: z.literal('railMerged'),
+		body: z.object({
+			childId: z.string(),
+			parentId: z.string(),
+			playerId: z.string(),
+		}),
+	}),
+	z.object({
+		type: z.literal('railBlockCreated'),
+		body: z.object({
+			attackerId: z.string(),
+			targetId: z.string(),
+			delay: z.number(),
+			attack: z.number(),
+		}),
+	}),
 ])
 type WsReceive = z.infer<typeof wsReceiveSchema>
 type WsSend = null // TODO
