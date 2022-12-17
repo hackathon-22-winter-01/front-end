@@ -42,7 +42,7 @@ const wsReceiveSchema = z
       type: z.literal('lifeChanged'),
       body: z.object({
         playerId: z.string(),
-        new: z.number(),
+        new: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
@@ -84,6 +84,14 @@ const wsReceiveSchema = z
       type: z.literal('blockCanceled'),
       body: z.object({
         railId: z.string(),
+      }),
+    }),
+    z.object({
+      type: z.literal('blockCrashed'),
+      body: z.object({
+        railId: z.string(),
+        playerId: z.string(),
+        new: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
@@ -133,7 +141,7 @@ const wsSendSchema = z.union([
   z.object({
     type: z.literal('blockEvent'),
     body: z.object({
-      type: z.literal('canceled'),
+      type: z.union([z.literal('canceled'), z.literal('crashed')]),
       railId: z.string(),
     }),
   }),
