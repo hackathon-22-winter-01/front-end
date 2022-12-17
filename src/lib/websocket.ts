@@ -139,7 +139,7 @@ const wsSendSchema = z.union([
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
       cardType: cardTypeSchema.nullable(),
-      rail: railIndexSchema,
+      railIndex: railIndexSchema,
     }),
   }),
 ])
