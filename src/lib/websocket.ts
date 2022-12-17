@@ -137,6 +137,7 @@ const wsSendSchema = z.union([
     type: z.literal('blockEvent'),
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
+      cardType: cardTypeSchema,
       rail: railSchema,
     }),
   }),
