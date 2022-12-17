@@ -5,7 +5,7 @@ export interface Client {
 }
 
 export const useClient = (): Client => {
-  const baseUrl = 'localhost:8080'
+  const baseUrl = 'http://localhost:8080'
   const client = useMemo(() => {
     return { baseUrl }
   }, [baseUrl])
