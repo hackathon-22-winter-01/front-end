@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { Rail, railSchema } from './rail'
 
 export interface Player {
   id: string

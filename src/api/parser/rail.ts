@@ -5,4 +5,4 @@ export interface Rail {
   index: number
 }
 
-export const railSchema = z.number().nonnegative().max(6)
+export const railIndexSchema = z.number().nonnegative().max(6)
