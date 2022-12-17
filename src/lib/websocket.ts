@@ -32,6 +32,7 @@ const cardTypeSchema = z.union([
   z.literal('lgtm'),
   z.literal('pullShark'),
   z.literal('starstruck'),
+  z.literal('none'),
 ])
 
 const wsReceiveSchema = z
@@ -53,6 +54,7 @@ const wsReceiveSchema = z
       type: z.literal('lifeChanged'),
       body: z.object({
         playerId: z.string(),
+        cardType: cardTypeSchema,
         new: z.number().nonnegative().max(100),
       }),
     }),
@@ -72,6 +74,7 @@ const wsReceiveSchema = z
         childRail: railSchema,
         parentRail: railSchema,
         playerId: z.string(),
+        cardType: cardTypeSchema,
       }),
     }),
     z.object({
@@ -79,6 +82,7 @@ const wsReceiveSchema = z
       body: z.object({
         attackerId: z.string(),
         targetId: z.string(),
+        cardType: cardTypeSchema,
         delay: z.number(),
         attack: z.number(),
       }),
@@ -88,6 +92,7 @@ const wsReceiveSchema = z
       body: z.object({
         targetId: z.string(),
         rail: railSchema,
+        cardType: cardTypeSchema,
       }),
     }),
     z.object({
@@ -95,6 +100,7 @@ const wsReceiveSchema = z
       body: z.object({
         targetId: z.string(),
         rail: railSchema,
+        cardType: cardTypeSchema,
         new: z.number().nonnegative().max(100),
       }),
     }),
