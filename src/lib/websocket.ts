@@ -71,7 +71,7 @@ const wsReceiveSchema = z.union([
     }),
   }),
   z.object({
-    type: z.literal('railBlockCreated'),
+    type: z.literal('blockCreated'),
     body: z.object({
       attackerId: z.string(),
       targetId: z.string(),
