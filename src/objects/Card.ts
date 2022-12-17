@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js'
 
 import { PressButton } from './PressButton'
-import { Renderable } from './Renderanle'
+import { Renderable } from './Renderable'
 
 export class Card implements Renderable {
   private app: PIXI.Application

@@ -3,7 +3,7 @@ import { WsManager } from '../lib/websocket'
 import { Board } from './Board'
 import { Card } from './Card'
 
-import { Renderable } from './Renderanle'
+import { Renderable } from './Renderable'
 
 /**
  * 1秒間に進むピクセル数

@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { delta_to_ms } from '../lib/converter'
-import { Renderable } from './Renderanle'
+import { Renderable } from './Renderable'
 import ReactSvg from '../pages/assets/react.svg'
 
 export class PressButton implements Renderable {

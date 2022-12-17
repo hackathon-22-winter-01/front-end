@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { Rail } from './Rail'
-import { Renderable } from './Renderanle'
+import { Renderable } from './Renderable'
 
 export class Board implements Renderable {
   static readonly DEFAULT_MAX_HP = 100

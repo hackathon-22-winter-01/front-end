@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { RailSabotage } from './RailSabotage'
-import { Renderable } from './Renderanle'
+import { Renderable } from './Renderable'
 
 const TRAIN_SPEED = 40
 
