@@ -95,14 +95,15 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('blockCanceled'),
       body: z.object({
+        targetId: z.string(),
         rail: railSchema,
       }),
     }),
     z.object({
       type: z.literal('blockCrashed'),
       body: z.object({
+        targetId: z.string(),
         rail: railSchema,
-        playerId: z.string(),
         new: z.number().nonnegative().max(100),
       }),
     }),
