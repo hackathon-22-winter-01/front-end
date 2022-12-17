@@ -49,7 +49,7 @@ const wsReceiveSchema = z
       type: z.literal('lifeChanged'),
       body: z.object({
         playerId: z.string(),
-        cardType: cardTypeSchema,
+        cardType: cardTypeSchema.nullable(),
         new: z.number().nonnegative().max(100),
       }),
     }),
@@ -96,7 +96,6 @@ const wsReceiveSchema = z
         targetId: z.string(),
         rail: railIndexSchema,
         cardType: cardTypeSchema.nullable(),
-        newLife: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
