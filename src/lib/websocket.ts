@@ -9,14 +9,9 @@ export interface Options {
   connectionTimeout: number
 }
 
-const railSchema = z.object({
-  id: z.string(),
-  index: z.number(),
-})
+const railIndexSchema = z.number().nonnegative().max(7)
 const playerSchema = z.object({
   id: z.string(),
-  mainRail: railSchema,
-  rails: z.array(railSchema),
   life: z.number(),
 })
 const cardSchema = z.object({
@@ -61,8 +56,8 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('railCreated'),
       body: z.object({
-        newRail: railSchema,
-        parentRail: railSchema,
+        newRail: railIndexSchema,
+        parentRail: railIndexSchema,
         attackerId: z.string(),
         targetId: z.string(),
         cardType: cardTypeSchema,
@@ -71,8 +66,8 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('railMerged'),
       body: z.object({
-        childRail: railSchema,
-        parentRail: railSchema,
+        childRail: railIndexSchema,
+        parentRail: railIndexSchema,
         playerId: z.string(),
         cardType: cardTypeSchema,
       }),
@@ -91,7 +86,7 @@ const wsReceiveSchema = z
       type: z.literal('blockCanceled'),
       body: z.object({
         targetId: z.string(),
-        rail: railSchema,
+        rail: railIndexSchema,
         cardType: cardTypeSchema.nullable(),
       }),
     }),
@@ -99,7 +94,7 @@ const wsReceiveSchema = z
       type: z.literal('blockCrashed'),
       body: z.object({
         targetId: z.string(),
-        rail: railSchema,
+        rail: railIndexSchema,
         cardType: cardTypeSchema.nullable(),
         newLife: z.number().nonnegative().max(100),
       }),
@@ -144,7 +139,7 @@ const wsSendSchema = z.union([
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
       cardType: cardTypeSchema.nullable(),
-      rail: railSchema,
+      rail: railIndexSchema,
     }),
   }),
 ])
