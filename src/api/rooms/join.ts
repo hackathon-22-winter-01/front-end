@@ -3,7 +3,7 @@ import { roomSchema } from '../parser/room'
 
 export const joinRoom =
   (client: Client) => async (roomId: string, playerName: string) => {
-    return await fetch(`${client.baseUrl}/rooms/join`, {
+    const response = await fetch(`${client.baseUrl}/rooms/join`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -13,6 +13,6 @@ export const joinRoom =
         playerName,
       }),
     })
-      .then((res) => res.json())
-      .then((data) => roomSchema.parse(data))
+    const json = await response.json()
+    return roomSchema.parse(json)
   }

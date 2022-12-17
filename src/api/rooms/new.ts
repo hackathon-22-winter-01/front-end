@@ -2,7 +2,7 @@ import { Client } from '..'
 import { roomSchema } from '../parser/room'
 
 export const createRoom = (client: Client) => async (playerName: string) => {
-  return await fetch(`${client.baseUrl}/rooms/new`, {
+  const response = await fetch(`${client.baseUrl}/rooms/new`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -11,6 +11,6 @@ export const createRoom = (client: Client) => async (playerName: string) => {
       playerName,
     }),
   })
-    .then((res) => res.json())
-    .then((data) => roomSchema.parse(data))
+  const json = await response.json()
+  return roomSchema.parse(json)
 }
