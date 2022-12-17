@@ -79,6 +79,12 @@ const wsReceiveSchema = z.union([
       attack: z.number(),
     }),
   }),
+  z.object({
+    type: z.literal('blockCanceled'),
+    body: z.object({
+      railId: z.string(),
+    }),
+  }),
 ])
 type WsReceive = z.infer<typeof wsReceiveSchema>
 type WsSend = null // TODO
