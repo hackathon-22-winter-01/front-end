@@ -9,7 +9,7 @@ export interface Options {
   connectionTimeout: number
 }
 
-const railIndexSchema = z.number().nonnegative().max(7)
+const railIndexSchema = z.number().nonnegative().max(6)
 const playerSchema = z.object({
   id: z.string(),
   life: z.number(),
