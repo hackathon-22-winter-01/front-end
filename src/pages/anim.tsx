@@ -261,97 +261,97 @@ const Anim: React.FC = () => {
   useEffect(() => {
     if (ref.current) {
       ref.current.appendChild(app.view as HTMLCanvasElement)
-      const reactIcon = PIXI.Sprite.from(reactLogo)
-      reactIcon.anchor.set(0.5)
-      reactIcon.x = app.screen.width / 2
-      reactIcon.y = app.screen.height / 2
-      reactIcon.interactive = true
-      reactIcon.on('pointerdown', changeColor)
-      reactIcon.cursor = 'pointer'
+      // const reactIcon = PIXI.Sprite.from(reactLogo)
+      // reactIcon.anchor.set(0.5)
+      // reactIcon.x = app.screen.width / 2
+      // reactIcon.y = app.screen.height / 2
+      // reactIcon.interactive = true
+      // reactIcon.on('pointerdown', changeColor)
+      // reactIcon.cursor = 'pointer'
 
-      const container = new PIXI.Container()
-      container.width = 800
-      container.height = 400
-      let rails = new Deque<StraightRail>()
-      for (let i = 0; i < 10; i++) {
-        const rail = new StraightRail()
-        rail.render.x = 120
-        rail.render.y = (9 - i) * 40
-        rails.push(rail)
-        container.addChild(rail.render)
-        // app.stage.addChild(rail.rail)
-      }
-      const createRailAnimationLoop = () => {
-        const start_time = Date.now()
-        let hidden_rails = 0
-        let base_time_diff = 0
-        const loop = () => {
-          const current_time = Date.now()
-          const diff_ms = current_time - start_time
-          const diff_cycle = diff_ms / (1000 / 144) / 3
-          const mag = diff_cycle / diff_ms
+      // const container = new PIXI.Container()
+      // container.width = 800
+      // container.height = 400
+      // let rails = new Deque<StraightRail>()
+      // for (let i = 0; i < 10; i++) {
+      //   const rail = new StraightRail()
+      //   rail.render.x = 120
+      //   rail.render.y = (9 - i) * 40
+      //   rails.push(rail)
+      //   container.addChild(rail.render)
+      //   // app.stage.addChild(rail.rail)
+      // }
+      // const createRailAnimationLoop = () => {
+      //   const start_time = Date.now()
+      //   let hidden_rails = 0
+      //   let base_time_diff = 0
+      //   const loop = () => {
+      //     const current_time = Date.now()
+      //     const diff_ms = current_time - start_time
+      //     const diff_cycle = diff_ms / (1000 / 144) / 3
+      //     const mag = diff_cycle / diff_ms
 
-          let distance_diff = diff_cycle - hidden_rails * 40
-          while (distance_diff >= 40) {
-            distance_diff -= 40
-            hidden_rails += 1
+      //     let distance_diff = diff_cycle - hidden_rails * 40
+      //     while (distance_diff >= 40) {
+      //       distance_diff -= 40
+      //       hidden_rails += 1
 
-            if (distance_diff < 30) {
-              const rail = rails.pop_front()
-              if (rail !== undefined) {
-                rails.push(rail)
-                rail.init_animation(30)
-                rail.update_animation(distance_diff)
-                let last_time = Date.now()
-                const railAnimationLoop = () => {
-                  const current_time = Date.now()
-                  const diff_ms = current_time - last_time
-                  last_time = current_time
+      //       if (distance_diff < 30) {
+      //         const rail = rails.pop_front()
+      //         if (rail !== undefined) {
+      //           rails.push(rail)
+      //           rail.init_animation(30)
+      //           rail.update_animation(distance_diff)
+      //           let last_time = Date.now()
+      //           const railAnimationLoop = () => {
+      //             const current_time = Date.now()
+      //             const diff_ms = current_time - last_time
+      //             last_time = current_time
 
-                  const distance_diff = diff_ms * mag
+      //             const distance_diff = diff_ms * mag
 
-                  if (!rail.update_animation(distance_diff)) {
-                    app.ticker.remove(railAnimationLoop)
-                  }
-                }
-                app.ticker.add(railAnimationLoop)
-              }
-            }
-          }
+      //             if (!rail.update_animation(distance_diff)) {
+      //               app.ticker.remove(railAnimationLoop)
+      //             }
+      //           }
+      //           app.ticker.add(railAnimationLoop)
+      //         }
+      //       }
+      //     }
 
-          rails.toArray().forEach((rail, i) => {
-            rail.render.y = (9 - i) * 40 + distance_diff
-          })
+      //     rails.toArray().forEach((rail, i) => {
+      //       rail.render.y = (9 - i) * 40 + distance_diff
+      //     })
 
-          // if (distance_diff >= 40) {
-          //   tick_count %= 40 * 3
-          //   distance_diff = tick_count / 3
-          //   const rail = rails.pop_front()
-          //   if (rail !== undefined) {
-          //     rails.push(rail)
-          //     const railAnimation = rail.createAnimation()
-          //     const railAnimationLoop = () => {
-          //       const result = railAnimation.next()
-          //       if (result.done) {
-          //         app.ticker.remove(railAnimationLoop)
-          //       }
-          //     }
-          //     app.ticker.add(railAnimationLoop)
-          //   }
-          // }
+      //     // if (distance_diff >= 40) {
+      //     //   tick_count %= 40 * 3
+      //     //   distance_diff = tick_count / 3
+      //     //   const rail = rails.pop_front()
+      //     //   if (rail !== undefined) {
+      //     //     rails.push(rail)
+      //     //     const railAnimation = rail.createAnimation()
+      //     //     const railAnimationLoop = () => {
+      //     //       const result = railAnimation.next()
+      //     //       if (result.done) {
+      //     //         app.ticker.remove(railAnimationLoop)
+      //     //       }
+      //     //     }
+      //     //     app.ticker.add(railAnimationLoop)
+      //     //   }
+      //     // }
 
-          // rails.toArray().forEach((rail, i) => {
-          //   rail.rail.y = (9 - i) * 40 + distance_diff
-          // })
+      //     // rails.toArray().forEach((rail, i) => {
+      //     //   rail.rail.y = (9 - i) * 40 + distance_diff
+      //     // })
 
-          // tick_count += 1
-        }
-        return loop
-      }
-      app.ticker.add(createRailAnimationLoop())
+      //     // tick_count += 1
+      //   }
+      //   return loop
+      // }
+      // app.ticker.add(createRailAnimationLoop())
 
       // container.scale.set(0.5)
-      app.stage.addChild(container)
+      // app.stage.addChild(container)
 
       {
         const rail2 = createRailCurved()
@@ -383,18 +383,18 @@ const Anim: React.FC = () => {
         app.stage.addChild(rail2.render)
       }
 
-      const rotate = (delta: number) => {
-        // [sum of delta / 60] is the time in seconds
-        reactIcon.rotation += 0.1 * delta
-      }
-      app.ticker.add(rotate)
+      // const rotate = (delta: number) => {
+      //   // [sum of delta / 60] is the time in seconds
+      //   reactIcon.rotation += 0.1 * delta
+      // }
+      // app.ticker.add(rotate)
 
-      app.stage.addChild(reactIcon)
+      // app.stage.addChild(reactIcon)
 
-      const card = new Card(app, 0)
-      card.render.x = 240
-      card.render.y = 240
-      app.stage.addChild(card.render)
+      // const card = new Card(app, 0)
+      // card.render.x = 240
+      // card.render.y = 240
+      // app.stage.addChild(card.render)
 
       const wsManager = new WsManager('')
       const game = new Game(app, 4, wsManager, Date.now())
