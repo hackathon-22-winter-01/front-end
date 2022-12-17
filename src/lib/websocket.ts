@@ -101,7 +101,7 @@ const wsReceiveSchema = z
         targetId: z.string(),
         rail: railSchema,
         cardType: cardTypeSchema,
-        new: z.number().nonnegative().max(100),
+        newLife: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
