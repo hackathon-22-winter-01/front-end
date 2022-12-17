@@ -86,6 +86,12 @@ const wsReceiveSchema = z
         railId: z.string(),
       }),
     }),
+    z.object({
+      type: z.literal('gameOverred'),
+      body: z.object({
+        playerId: z.string(),
+      }),
+    }),
   ])
   .and(
     z.object({
