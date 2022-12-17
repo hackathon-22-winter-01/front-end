@@ -32,6 +32,7 @@ const cardTypeSchema = z.union([
   z.literal('lgtm'),
   z.literal('pullShark'),
   z.literal('starstruck'),
+  z.literal('none'),
 ])
 
 const wsReceiveSchema = z
@@ -53,17 +54,9 @@ const wsReceiveSchema = z
       type: z.literal('lifeChanged'),
       body: z.object({
         playerId: z.string(),
+        cardType: cardTypeSchema,
         new: z.number().nonnegative().max(100),
       }),
-    }),
-    z.object({
-      type: z.literal('cardReset'),
-      body: z.array(
-        z.object({
-          playerId: z.string(),
-          cards: z.array(cardSchema),
-        }),
-      ),
     }),
     z.object({
       type: z.literal('railCreated'),
@@ -81,6 +74,7 @@ const wsReceiveSchema = z
         childRail: railSchema,
         parentRail: railSchema,
         playerId: z.string(),
+        cardType: cardTypeSchema,
       }),
     }),
     z.object({
@@ -88,6 +82,7 @@ const wsReceiveSchema = z
       body: z.object({
         attackerId: z.string(),
         targetId: z.string(),
+        cardType: cardTypeSchema,
         delay: z.number(),
         attack: z.number(),
       }),
@@ -95,15 +90,18 @@ const wsReceiveSchema = z
     z.object({
       type: z.literal('blockCanceled'),
       body: z.object({
+        targetId: z.string(),
         rail: railSchema,
+        cardType: cardTypeSchema,
       }),
     }),
     z.object({
       type: z.literal('blockCrashed'),
       body: z.object({
+        targetId: z.string(),
         rail: railSchema,
-        playerId: z.string(),
-        new: z.number().nonnegative().max(100),
+        cardType: cardTypeSchema,
+        newLife: z.number().nonnegative().max(100),
       }),
     }),
     z.object({
@@ -145,6 +143,7 @@ const wsSendSchema = z.union([
     type: z.literal('blockEvent'),
     body: z.object({
       type: z.union([z.literal('canceled'), z.literal('crashed')]),
+      cardType: cardTypeSchema,
       rail: railSchema,
     }),
   }),
