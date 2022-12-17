@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef } from 'react'
 import { Deque } from '../lib/deque'
 import { EaseIn, EaseOut } from '../lib/easing'
 import { WsManager } from '../lib/websocket'
-import { Card, Game } from '../objects/Game'
-import { CurveRail, StraightRail } from '../objects/Rail'
+import { Card } from '../objects/Card'
+import { Game } from '../objects/Game'
+import { CurveRail, StraightRail } from '../objects/Rail_old'
 import reactLogo from './assets/react.svg'
 
 const DELTA = 0.04
