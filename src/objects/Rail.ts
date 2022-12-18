@@ -148,13 +148,13 @@ export class Rail implements Renderable {
         if (body.targetId !== this.ownerId) {
           return
         }
-        if (body.newRail.index !== this.index) {
+        if (body.newRail !== this.index) {
           return
         }
         this.event_queue.push(
           new EventLog(this.app, {
             type: 'branched',
-            fromIdx: body.parentRail.index,
+            fromIdx: body.parentRail,
             cardInfo: {
               attackerName: body.attackerId,
               cardType: body.cardType,
@@ -168,13 +168,13 @@ export class Rail implements Renderable {
         if (body.playerId !== this.ownerId) {
           return
         }
-        if (body.childRail.index !== this.index) {
+        if (body.childRail !== this.index) {
           return
         }
         this.event_queue.push(
           new EventLog(this.app, {
             type: 'merged',
-            toIdx: body.parentRail.index,
+            toIdx: body.parentRail,
             cardInfo: {
               attackerName: body.playerId,
               cardType: body.cardType,
@@ -188,7 +188,7 @@ export class Rail implements Renderable {
         if (body.targetId !== this.ownerId) {
           return
         }
-        if (body.rail.index !== this.index) {
+        if (body.rail !== this.index) {
           return
         }
         this.blocking_event = undefined
@@ -200,7 +200,7 @@ export class Rail implements Renderable {
         if (body.targetId !== this.ownerId) {
           return
         }
-        if (body.rail.index !== this.index) {
+        if (body.rail !== this.index) {
           return
         }
         this.blocking_event = undefined
@@ -212,10 +212,9 @@ export class Rail implements Renderable {
         if (body.targetId !== this.ownerId) {
           return
         }
-        // TODO
-        // if (body.rail.index !== this.index) {
-        //   return
-        // }
+        if (body.railIndex !== this.index) {
+          return
+        }
         this.event_queue.push(
           new EventLog(this.app, {
             type: 'sabotage',
@@ -339,10 +338,7 @@ export class Rail implements Renderable {
               type: 'blockEvent',
               body: {
                 type: 'canceled',
-                rail: {
-                  index: this.index,
-                  id: '',
-                },
+                railIndex: this.index,
                 cardType: 'lgtm',
               },
             })
@@ -354,10 +350,7 @@ export class Rail implements Renderable {
               type: 'blockEvent',
               body: {
                 type: 'crashed',
-                rail: {
-                  index: this.index,
-                  id: '',
-                },
+                railIndex: this.index,
                 cardType: 'lgtm',
               },
             })

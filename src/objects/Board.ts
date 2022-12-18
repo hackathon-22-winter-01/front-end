@@ -88,15 +88,6 @@ export class Board implements Renderable {
         this.restHP = body.newLife
         break
       }
-      case 'blockCrashed': {
-        const { body } = detail
-        if (body.targetId !== this.ownerId) {
-          return
-        }
-
-        this.restHP = body.newLife
-        break
-      }
       case 'gameOverred': {
         const { body } = detail
         if (body.playerId !== this.ownerId) {
