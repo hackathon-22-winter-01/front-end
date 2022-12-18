@@ -44,7 +44,7 @@ const New = () => {
       return null
     }
 
-    const inviteOwnerName = data.room.players[0].name
+    const inviteOwnerName = data.players[0].name
 
     return `${inviteOwnerName}に招待されました！`
   }, [id])
