@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import useSWR from 'swr'
 import { styles } from './styles.css'
 import { useClient } from '/@/api/'
-import useSWR from 'swr'
-import { getRoom } from '/@/api/rooms/[roomId]'
-import { createRoom } from '/@/api/rooms/new'
 import { joinRoom } from '/@/api/rooms/join'
+import { createRoom } from '/@/api/rooms/new'
+import { getRoom } from '/@/api/rooms/[roomId]'
 
 function useQuery() {
   const { search } = useLocation()
@@ -20,10 +20,7 @@ const New = () => {
   }, [query])
   const client = useClient()
 
-  const { data, error } = useSWR(
-    id !== null ? ['/api/room', id] : null,
-    getRoom(client),
-  )
+  const { data, error } = useSWR(id !== null ? id : null, getRoom(client))
 
   const [name, setName] = useState<string>('')
   const handleChange = useCallback(
@@ -64,6 +61,7 @@ const New = () => {
         try {
           const res = await createRoom(client)(name)
           // TODO
+          console.log(res)
         } catch (e) {
           console.error(e)
         }

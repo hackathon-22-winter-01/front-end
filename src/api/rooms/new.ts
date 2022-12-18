@@ -1,5 +1,5 @@
 import { Client } from '..'
-import { roomSchema } from '../parser/room'
+import { roomResponseSchema } from '../parser/room'
 
 export const createRoom = (client: Client) => async (playerName: string) => {
   const response = await fetch(`${client.baseUrl}/rooms/new`, {
@@ -12,5 +12,5 @@ export const createRoom = (client: Client) => async (playerName: string) => {
     }),
   })
   const json = await response.json()
-  return roomSchema.parse(json)
+  return roomResponseSchema.parse(json)
 }
