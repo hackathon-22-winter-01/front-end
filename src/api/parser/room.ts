@@ -18,7 +18,7 @@ export const roomSchema = z.object({
   startedAt: z.string(),
 })
 
-export const getRoomSchema = z.object({
-  id: z.string(),
-  players: z.array(playerSchema),
+export const roomResponseSchema = z.object({
+  playerId: z.string(),
+  room: roomSchema,
 })
