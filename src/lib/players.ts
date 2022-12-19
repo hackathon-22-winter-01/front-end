@@ -15,19 +15,22 @@ export const usePlayers = () => {
 
       switch (data.type) {
         case 'connected': {
-          setPlayers(prev => [...prev, data.body.playerId])
+          setPlayers((prev) => [...prev, data.body.playerId])
           break
         }
-        case '': {
-          setPlayers(prev => prev.filter(playerId => playerId !== data.body.playerId))
-          break
-        }
-
-
-
-    return () => {
-      wsManager.disconnect()
-    }
+        // case 'joined': {
+        //   setPlayers((prev) => [...prev, data.body.playerId])
+        //   break
+        // }
+        // case 'left': {
+        //   setPlayers(prev => prev.filter(playerId => playerId !== data.body.playerId))
+        //   break
+        // }
+      }
+    })
   })
 
+  return {
+    players,
+  }
 }
