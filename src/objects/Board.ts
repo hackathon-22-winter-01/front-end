@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js'
+import { delta_to_ms } from '../lib/converter'
+import { PressProgressManager } from '../lib/pressManager'
 import { WsManager, WsReceive } from '../lib/websocket'
 import { Rail } from './Rail'
 import { Renderable } from './Renderable'
@@ -9,6 +11,8 @@ export class Board implements Renderable {
   private app: PIXI.Application
 
   private wsManager?: WsManager
+
+  readonly progress_manager: PressProgressManager
 
   rails: Rail[]
   status: null // todo
@@ -71,6 +75,8 @@ export class Board implements Renderable {
         this.ws_handler(e.detail)
       })
     }
+
+    this.progress_manager = new PressProgressManager(app, null)
   }
 
   get render(): PIXI.DisplayObject {
@@ -104,7 +110,7 @@ export class Board implements Renderable {
     }
   }
 
-  private tick_handler?: () => void
+  private tick_handler?: (delta: number) => void
 
   private init_render(): void {
     this.clear()
@@ -113,10 +119,65 @@ export class Board implements Renderable {
       this.tick_handler = undefined
     }
 
+    const reduceHP = (delta_ms: number) => {
+      if (!this.isMine) {
+        return
+      }
+
+      if (this.isGameOver) {
+        return
+      }
+
+      const delta = delta_ms / 1000
+
+      this.wsManager?.send({
+        type: 'lifeEvent',
+        body: {
+          type: 'damaged',
+          diff: delta,
+        },
+      })
+    }
+    if (this.isMine) {
+      this.tick_handler = (delta: number) => {
+        const delta_ms = delta_to_ms(delta)
+        reduceHP(delta_ms)
+      }
+      this.app.ticker.add(this.tick_handler)
+    }
+    const healHP = (delta_ms: number) => {
+      if (!this.isMine) {
+        return
+      }
+
+      if (this.isGameOver) {
+        return
+      }
+
+      const delta = delta_ms / 1000
+
+      this.wsManager?.send({
+        type: 'lifeEvent',
+        body: {
+          type: 'heal',
+          diff: delta,
+        },
+      })
+    }
+    if (this.isMine) {
+      this.progress_manager.pressing = (delta_ms) => {
+        healHP(delta_ms)
+      }
+    }
+
     {
       const HPBarContainer = new PIXI.Container()
       HPBarContainer.position.set(0, 0)
       this.container.addChild(HPBarContainer)
+
+      if (this.isMine) {
+        this.progress_manager.setHandler(HPBarContainer)
+      }
       {
         const HPBarBackground = new PIXI.Sprite(PIXI.Texture.WHITE)
         HPBarBackground.width = 520
@@ -135,6 +196,7 @@ export class Board implements Renderable {
         const HPBarContentContainer = new PIXI.Container()
         HPBarContentContainer.position.set(...HPBarPadding)
         HPBarContainer.addChild(HPBarContentContainer)
+
         {
           const HPBarContentBackground = new PIXI.Sprite(PIXI.Texture.WHITE)
           HPBarContentBackground.width = HPBarContentSize[0]
@@ -203,26 +265,6 @@ export class Board implements Renderable {
         BoardContainer.mask = BoardMask
       }
     }
-    // {
-    //   const board = new PIXI.Graphics()
-    //   board.beginFill(0xf9f5ea)
-    //   board.drawRect(0, 0, 520, 800)
-    //   board.endFill()
-    //   board.zIndex = Board.zIndices.background
-    //   this.container.addChild(board)
-    // }
-
-    // this.rails.forEach((rail) => {
-    //   rail.render.zIndex = Board.zIndices.rails
-    //   this.container.addChild(rail.render)
-    // })
-
-    // const ContainerMask = new PIXI.Graphics()
-    // ContainerMask.beginFill(0xffffff)
-    // ContainerMask.drawRoundedRect(0, 0, 520, 800, 12)
-    // ContainerMask.endFill()
-    // this.container.addChild(ContainerMask)
-    // this.container.mask = ContainerMask
   }
 
   public update_render(timing_ms: number): void {
