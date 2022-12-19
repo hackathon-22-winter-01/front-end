@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import { BrowserRouter as Router, useRoutes } from 'react-router-dom'
 import routes from '~react-pages'
+import './vars.css'
 
 const App = () => {
   return (

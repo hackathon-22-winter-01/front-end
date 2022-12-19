@@ -7,14 +7,18 @@ export const styles = {
     placeItems: 'center',
     textAlign: 'left',
 
+    position: 'relative',
+
+    backgroundColor: '#71DBF2',
     height: '100%',
     width: '100%',
   }),
+
   contentWrap: style({
     display: 'flex',
     flexDirection: 'column',
     maxWidth: '100%',
-    width: '752px',
+    width: '1088px',
     rowGap: '64px',
   }),
 
@@ -22,18 +26,25 @@ export const styles = {
     fontSize: '36px',
     lineHeight: '36px',
     margin: '0',
-    fontWeight: 500,
   }),
   interfaceWrap: style({
     padding: '64px 0',
     display: 'flex',
     flexDirection: 'column',
     rowGap: '48px',
-    backgroundColor: '#71DBF2',
+    backgroundColor: '#ffffff',
     borderRadius: '12px',
     alignItems: 'center',
   }),
 
+  linkWrap: style({
+    display: 'flex',
+    flexDirection: 'column',
+    rowGap: '16px',
+    maxWidth: '480px',
+  }),
+
+  inputButton: style({}),
   inputLabel: style({
     fontSize: '28px',
     lineHeight: '1',
@@ -41,25 +52,29 @@ export const styles = {
     flexDirection: 'column',
     rowGap: '16px',
   }),
-  inputText: style({
+  LinkText: style({
     height: '64px',
     fontSize: '28px',
     lineHeight: '64px',
 
     boxShadow: InShadow,
     padding: '0 20px',
+
+    backgroundColor: 'rgba(240, 240, 240, 1)',
+    border: '0',
   }),
 
-  joinButton: style({
-    height: '96px',
-    fontSize: '28px',
-    display: 'grid',
-    placeItems: 'center',
-    backgroundColor: '#A3FFAC',
-    borderRadius: '8px',
+  memberWrap: style({}),
 
-    border: 'solid 4px #ffffff',
+  startButtonWrap: style({
+    height: '96px',
+    borderRadius: '12px',
+    padding: '8px',
+    background: '#ffffff',
+
     maxWidth: '304px',
+    width: '100%',
+    boxShadow: InShadow,
 
     position: 'relative',
 
@@ -80,6 +95,22 @@ export const styles = {
         backgroundColor: 'rgba(0, 0, 0, 0.35)',
       },
     },
+
+    ':before': {
+      content: '""',
+      position: 'absolute',
+    },
+  }),
+  startButtonContent: style({
+    fontSize: '28px',
+    display: 'grid',
+    placeItems: 'center',
+    backgroundColor: '#A3FFAC',
+    borderRadius: '8px',
+    boxShadow: InShadow,
+
+    height: '100%',
+    width: '100%',
   }),
 
   dummyText: style({
@@ -89,7 +120,3 @@ export const styles = {
     userSelect: 'none',
   }),
 }
-
-// export const interfaceTextBox = style({
-
-// })

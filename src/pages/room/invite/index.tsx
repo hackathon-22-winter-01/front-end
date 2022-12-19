@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { styles } from './styles.css'
 import { useClient } from '/@/api/'
 import useSWR from 'swr'
@@ -19,6 +19,8 @@ const New = () => {
     return query.get('roomId')
   }, [query])
   const client = useClient()
+
+  const navigate = useNavigate()
 
   const { data, error } = useSWR(
     id !== null ? ['/api/room', id] : null,
@@ -63,6 +65,10 @@ const New = () => {
       if (inviteInfo === null) {
         try {
           const res = await createRoom(client)(name)
+
+          navigate(`/room/${res.id}`, {
+            state: res.players,
+          })
           // TODO
         } catch (e) {
           console.error(e)
@@ -70,6 +76,10 @@ const New = () => {
       } else {
         try {
           const res = await joinRoom(client)(id!, name)
+
+          navigate(`/room/${res.id}`, {
+            state: res.players,
+          })
           // TODO
         } catch (e) {
           console.error(e)

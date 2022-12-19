@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react'
 import { z } from 'zod'
 
 // TODO
@@ -36,6 +37,7 @@ const wsReceiveSchema = z
       type: z.literal('connected'),
       body: z.object({
         playerId: z.string(),
+        // TODO: player ids 降ってこなそうなの聞く
       }),
     }),
     z.object({
@@ -207,5 +209,23 @@ export class WsManager implements IWsManager {
 
   public get eventTarget(): EventTarget {
     return this._eventTarget
+  }
+}
+
+export const useWsManager = (url: string) => {
+  const [wsManager] = useState(() => new WsManager(url))
+
+  const connect = useCallback(() => {
+    wsManager.connect()
+  }, [wsManager])
+  const disconnect = useCallback(() => {
+    wsManager.disconnect()
+  }, [wsManager])
+
+  return {
+    value: wsManager,
+    eventTarget: wsManager.eventTarget,
+    connect,
+    disconnect,
   }
 }
