@@ -1,7 +1,8 @@
 import * as PIXI from 'pixi.js'
+import { WsReceive } from '../api/ws/schema'
 import { delta_to_ms } from '../lib/converter'
 import { PressProgressManager } from '../lib/pressManager'
-import { WsManager, WsReceive } from '../lib/websocket'
+import { WsManager } from '../lib/websocket'
 import { Rail, SAFETY_LENGTH } from './Rail'
 import { Renderable } from './Renderable'
 

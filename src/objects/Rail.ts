@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js'
+import { WsReceive } from '../api/ws/schema'
 import { Deque } from '../lib/deque'
 import { clamp } from '../lib/easing'
 import { unreachable } from '../lib/types'
-import { WsManager, WsReceive } from '../lib/websocket'
+import { WsManager } from '../lib/websocket'
 import { RailSabotage } from './RailSabotage'
 import { Renderable } from './Renderable'
 
