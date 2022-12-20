@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js'
 import { delta_to_ms } from '../lib/converter'
 import { PressProgressManager } from '../lib/pressManager'
 import { WsManager, WsReceive } from '../lib/websocket'
-import { Rail } from './Rail'
+import { Rail, SAFETY_LENGTH } from './Rail'
 import { Renderable } from './Renderable'
 
 export class Board implements Renderable {
@@ -66,7 +66,6 @@ export class Board implements Renderable {
 
     this.container = new PIXI.Container()
     this.container.sortableChildren = true
-    this.init_render()
 
     if (wsManager) {
       this.wsManager = wsManager
@@ -77,6 +76,8 @@ export class Board implements Renderable {
     }
 
     this.progress_manager = new PressProgressManager(app, null)
+
+    this.init_render()
   }
 
   get render(): PIXI.DisplayObject {
@@ -257,6 +258,16 @@ export class Board implements Renderable {
         })
       }
       {
+        // TODO: あとで消す
+        const SafetyLine = new PIXI.Sprite(PIXI.Texture.WHITE)
+        SafetyLine.width = 520
+        SafetyLine.height = 4
+        SafetyLine.tint = 0x000000
+        SafetyLine.position.set(0, SAFETY_LENGTH - 2)
+        SafetyLine.zIndex = Board.zIndices.train
+        BoardContainer.addChild(SafetyLine)
+      }
+      {
         const BoardMask = new PIXI.Graphics()
         BoardMask.beginFill(0xffffff)
         BoardMask.drawRoundedRect(0, 0, 520, 800, 12)
@@ -264,6 +275,17 @@ export class Board implements Renderable {
         BoardContainer.addChild(BoardMask)
         BoardContainer.mask = BoardMask
       }
+    }
+    {
+      // TODO
+      const GameOveredMask = new PIXI.Sprite(PIXI.Texture.WHITE)
+      GameOveredMask.width = 520
+      GameOveredMask.height = 848
+      GameOveredMask.tint = 0x000000
+      GameOveredMask.position.set(0, 0)
+      GameOveredMask.alpha = 0.5
+      GameOveredMask.visible = false
+      this.container.addChild(GameOveredMask)
     }
   }
 
@@ -274,6 +296,10 @@ export class Board implements Renderable {
         (520 - Board.railLayout.width * 7 - Board.railLayout.gap_x * 6) / 2 +
         idx * (Board.railLayout.width + Board.railLayout.gap_x)
     })
+
+    if (this.isGameOver) {
+      this.container.getChildAt(2).visible = true
+    }
   }
 
   private clear(): void {

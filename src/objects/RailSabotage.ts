@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { PressProgressManager } from '../lib/pressManager'
+import { Renderable } from './Renderable'
 
 const difficulty_need_time_mapping = {
   1: 1000,
@@ -16,8 +17,10 @@ const difficulty_need_time_mapping = {
 }
 
 type RailSabotageType = 'broken'
-export class RailSabotage {
+export class RailSabotage implements Renderable {
   private app: PIXI.Application
+
+  private container: PIXI.Container
 
   type: RailSabotageType
   readonly timing: number
@@ -46,6 +49,9 @@ export class RailSabotage {
     this.progress_manager = new PressProgressManager(app, this.needTime_ms)
 
     this.progress_manager.pressed = this.trigger_repair.bind(this)
+
+    this.container = new PIXI.Container()
+    this.init_render()
   }
 
   private repaired_handler?: () => void
@@ -74,5 +80,38 @@ export class RailSabotage {
 
     this.repaired_handler = undefined
     this.crashed_handler = undefined
+  }
+
+  get render(): PIXI.Container {
+    return this.container
+  }
+
+  private init_render(): void {
+    this.container.removeChildren()
+
+    const RockUnder = new PIXI.Graphics()
+    RockUnder.beginFill(0xc6d4d9)
+    RockUnder.lineStyle(2, 0x000000)
+    RockUnder.drawRect(0, 0, 60, 50)
+    RockUnder.endFill()
+    const RockUpper = new PIXI.Graphics()
+    RockUpper.beginFill(0x9ba8ad)
+    RockUpper.lineStyle(2, 0x000000)
+    RockUpper.drawRect(0, 0, 30, 20)
+    RockUpper.endFill()
+
+    const Rock = new PIXI.Container()
+    Rock.addChild(RockUnder)
+    Rock.addChild(RockUpper)
+    RockUnder.x = 0
+    RockUnder.y = 5
+    RockUpper.x = 15
+    RockUpper.y = 0
+
+    // now 60 x 55
+    // like 40 x 40
+    this.container.pivot.set(10, 15 / 2)
+
+    this.container.addChild(Rock)
   }
 }

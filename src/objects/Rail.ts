@@ -1,11 +1,14 @@
 import * as PIXI from 'pixi.js'
 import { Deque } from '../lib/deque'
+import { clamp } from '../lib/easing'
 import { unreachable } from '../lib/types'
 import { WsManager, WsReceive } from '../lib/websocket'
 import { RailSabotage } from './RailSabotage'
 import { Renderable } from './Renderable'
 
 const TRAIN_SPEED = 40
+export const SAFETY_LENGTH = 750
+const SAFETY_TIME_ms = (SAFETY_LENGTH / TRAIN_SPEED) * 1000
 
 type RailRelationLog =
   | {
@@ -130,6 +133,21 @@ export class Rail implements Renderable {
       const oneRail = new OneRailTmp(this.app)
       oneRail.render.position.set(0, topMargin + railPx * i)
       this.container.addChild(oneRail.render)
+    }
+
+    if (this.status !== undefined) {
+      this.container.addChild(this.status.render)
+
+      // FIXME: あとで直す
+      const restTime = clamp(
+        this.blocking_event?.resolve_timing ?? timing_ms + 100 - timing_ms,
+        [0, SAFETY_TIME_ms],
+      )
+      const restLength = (restTime / 1000) * TRAIN_SPEED
+      this.status.render.position.set(
+        this.width - this.status.render.width,
+        this.height - restLength,
+      )
     }
 
     this.event_resolver(timing_ms)
@@ -361,7 +379,7 @@ export class Rail implements Renderable {
           event,
           resolve_timing: undefined,
         }
-        this.crash_timing = reached_timing_truncated + event.type.delay
+        this.crash_timing = reached_timing_truncated + SAFETY_TIME_ms
         break
       }
       default: {
