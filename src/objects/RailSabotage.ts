@@ -9,11 +9,7 @@ const difficulty_need_time_mapping = {
   4: 2500,
   5: 3000,
 } as const satisfies {
-  1: number
-  2: number
-  3: number
-  4: number
-  5: number
+  [key in 1 | 2 | 3 | 4 | 5]: number
 }
 
 type RailSabotageType = 'broken'
