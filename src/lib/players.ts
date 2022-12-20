@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useWsManager, WsReceive } from './websocket'
+import { WsReceive } from '../api/ws/schema'
+import { wsManager, wsManagerEventTarget } from './websocket'
 
 export const usePlayers = () => {
-  const wsManager = useWsManager('ws://localhost:8080/ws')
-
   const [players, setPlayers] = useState<unknown[]>([])
 
   useEffect(() => {
     wsManager.connect()
 
-    wsManager.eventTarget.addEventListener('message', (event) => {
+    const messageHandler = (event: Event) => {
       const e = event as CustomEvent<WsReceive>
       const data = e.detail
 
@@ -27,7 +26,12 @@ export const usePlayers = () => {
         //   break
         // }
       }
-    })
+    }
+    wsManagerEventTarget.addEventListener('message', messageHandler)
+
+    return () => {
+      wsManagerEventTarget.removeEventListener('message', messageHandler)
+    }
   })
 
   return {

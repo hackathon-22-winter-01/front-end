@@ -75,20 +75,7 @@ export class WsManager implements IWsManager {
   }
 }
 
-export const useWsManager = (url: string) => {
-  const [wsManager] = useState(() => new WsManager(url))
-
-  const connect = useCallback(() => {
-    wsManager.connect()
-  }, [wsManager])
-  const disconnect = useCallback(() => {
-    wsManager.disconnect()
-  }, [wsManager])
-
-  return {
-    value: wsManager,
-    eventTarget: wsManager.eventTarget,
-    connect,
-    disconnect,
-  }
-}
+export const wsManager = new WsManager(targetUrl)
+export const wsManagerEventTarget = wsManager.eventTarget
+export const connect = () => wsManager.connect()
+export const disconnect = () => wsManager.disconnect()
