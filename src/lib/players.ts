@@ -13,18 +13,14 @@ export const usePlayers = () => {
       const data = e.detail
 
       switch (data.type) {
-        case 'connected': {
-          setPlayers((prev) => [...prev, data.body.playerId])
+        case 'joined': {
+          setPlayers(data.body.players)
           break
         }
-        // case 'joined': {
-        //   setPlayers((prev) => [...prev, data.body.playerId])
-        //   break
-        // }
-        // case 'left': {
-        //   setPlayers(prev => prev.filter(playerId => playerId !== data.body.playerId))
-        //   break
-        // }
+        case 'left': {
+          setPlayers(data.body.players)
+          break
+        }
       }
     }
     wsManagerEventTarget.addEventListener('message', messageHandler)

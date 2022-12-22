@@ -5,6 +5,10 @@ const playerSchema = z.object({
   id: z.string(),
   life: z.number(),
 })
+const inRoomPlayerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+})
 const cardSchema = z.object({
   id: z.string(),
   type: z.string(),
@@ -24,10 +28,17 @@ const cardTypeSchema = z.union([
 export const wsReceiveSchema = z
   .union([
     z.object({
-      type: z.literal('connected'),
+      type: z.literal('joined'),
       body: z.object({
-        playerId: z.string(),
-        // TODO: player ids 降ってこなそうなの聞く
+        joinedPlayer: inRoomPlayerSchema,
+        players: z.array(inRoomPlayerSchema),
+      }),
+    }),
+    z.object({
+      type: z.literal('left'),
+      body: z.object({
+        leftPlayer: inRoomPlayerSchema,
+        players: z.array(inRoomPlayerSchema),
       }),
     }),
     z.object({
