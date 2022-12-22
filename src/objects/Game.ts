@@ -6,6 +6,9 @@ import { Card } from './Card'
 import { Renderable } from './Renderable'
 
 export class Game implements Renderable {
+  public static readonly WIDTH = 1444
+  public static readonly HEIGHT = 892
+
   private app: PIXI.Application
 
   myBoard: Board
