@@ -7,8 +7,17 @@ import { WsManager } from '../lib/websocket'
 import { RailSabotage } from './RailSabotage'
 import { Renderable } from './Renderable'
 
+/**
+ * 1秒間に進むピクセル数
+ */
 const TRAIN_SPEED = 40
+/**
+ * 上からぶつかり判定までの距離
+ */
 export const SAFETY_LENGTH = 750
+/**
+ *　上からぶつかり判定までの時間 [ms]
+ */
 const SAFETY_TIME_ms = (SAFETY_LENGTH / TRAIN_SPEED) * 1000
 
 type RailRelationLog =

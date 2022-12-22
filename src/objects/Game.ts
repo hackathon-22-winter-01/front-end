@@ -5,10 +5,6 @@ import { Card } from './Card'
 
 import { Renderable } from './Renderable'
 
-/**
- * 1秒間に進むピクセル数
- */
-
 export class Game implements Renderable {
   private app: PIXI.Application
 
