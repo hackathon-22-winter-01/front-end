@@ -5,6 +5,7 @@ import { Game } from '/@/objects/Game'
 import { styles } from './styles.css'
 import { useEffect, useRef } from 'react'
 import { wsManager } from '/@/lib/websocket'
+import { FpsManager } from '/@/objects/FpsManager'
 
 const stateSchema = z
   .object({
@@ -90,10 +91,19 @@ const GamePage: React.FC = () => {
     resize()
     window.addEventListener('resize', resize)
 
+    const fpsManager = new FpsManager(app)
+    app.stage.addChild(fpsManager.render)
+    fpsManager.render.position.set(10, 10)
+    ;(fpsManager.render.children[0] as PIXI.Text).style.fill = 0xff0000
+
     return () => {
-      app.stage.removeChild(game.render)
+      app.stage.children.forEach((child) => {
+        child.destroy()
+      })
       // game.destroy()
       window.removeEventListener('resize', resize)
+      if (ref.current === null) return
+      ref.current.removeChild(app.view as HTMLCanvasElement)
     }
   })
 
