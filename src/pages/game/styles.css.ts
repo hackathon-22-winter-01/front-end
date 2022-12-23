@@ -5,13 +5,17 @@ export const styles = {
   pageContainer: style({
     height: '100%',
     width: '100%',
+  }),
+  gameWrap: style({
+    height: '100%',
+    width: '100%',
     display: 'grid',
     placeItems: 'center',
+    backgroundColor: 'cyan',
   }),
   gameContainer: style({
     aspectRatio: '1444 / 892', // `${Game.WIDTH} / ${Game.HEIGHT}`,
-    height: '100%',
-    width: '100%',
-    // objectFit: 'contain',
+    backgroundColor: 'green',
+    margin: 'auto',
   }),
 }

@@ -30,6 +30,7 @@ const GamePage: React.FC = () => {
   const state = stateSchema.parse(location.state)
 
   const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement>(null)
   const ref = useRef<HTMLDivElement>(null)
   if (state === undefined) {
     // TODO: 本番でいれる
@@ -40,8 +41,6 @@ const GamePage: React.FC = () => {
   // const { players, startedAt } = state!
   useEffect(() => {
     if (ref.current === null) return
-
-    ref.current.appendChild(app.view as HTMLCanvasElement)
 
     const player_list = [
       {
@@ -64,17 +63,45 @@ const GamePage: React.FC = () => {
     const game = new Game(app, 4, wsManager, 0, player_list, '1')
     app.stage.addChild(game.render)
 
-    app.resizeTo = ref.current
+    const container = containerRef.current
+    if (container === null) return
+
+    ref.current.appendChild(app.view as HTMLCanvasElement)
+    const resize = () => {
+      if (ref.current === null) return
+      ref.current.removeChild(app.view as HTMLCanvasElement)
+
+      const width = container.clientWidth
+      const height = container.clientHeight
+
+      let aspectedWidth = width
+      let aspectedHeight = height
+      if (width * Game.HEIGHT > height * Game.WIDTH) {
+        aspectedWidth = (height * Game.WIDTH) / Game.HEIGHT
+      } else {
+        aspectedHeight = (width * Game.HEIGHT) / Game.WIDTH
+      }
+
+      app.stage.scale.set(aspectedWidth / Game.WIDTH)
+      app.renderer.resize(aspectedWidth, aspectedHeight)
+
+      ref.current.appendChild(app.view as HTMLCanvasElement)
+    }
+    resize()
+    window.addEventListener('resize', resize)
 
     return () => {
       app.stage.removeChild(game.render)
       // game.destroy()
+      window.removeEventListener('resize', resize)
     }
   })
 
   return (
     <div className={styles.pageContainer}>
-      <div className={styles.gameContainer} ref={ref} />
+      <div className={styles.gameWrap} ref={containerRef}>
+        <div className={styles.gameContainer} ref={ref} />
+      </div>
       <h1>GamePage</h1>
     </div>
   )
